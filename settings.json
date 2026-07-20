@@ -1,0 +1,48 @@
+{
+  "cleanupPeriodDays": 90,
+  "permissions": {
+    "allow": [],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "changed=$(git diff --name-only 2>/dev/null); if [ -n \"$changed\" ]; then files=$(echo \"$changed\" | tr '\\n' ', ' | sed 's/,$//'); printf '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"These files have uncommitted changes (possibly manually edited). Re-read before modifying: %s\"}}' \"$files\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/usage-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/usage-context.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/scripts/usage-statusline.sh",
+    "refreshInterval": 30
+  },
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "skipAutoPermissionPrompt": true
+}

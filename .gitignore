@@ -1,0 +1,18 @@
+# ~/.claude settings sync — allowlist approach.
+# Everything is ignored by default; only portable config is tracked below.
+# This keeps secrets, session transcripts, caches and machine state out of git.
+
+/*
+
+# --- Tracked config (un-ignored) ---
+!/.gitignore
+!/.env.example
+!/CLAUDE.md
+!/settings.json
+!/scripts/
+!/skills/
+!/commands/
+
+# --- Never track, even inside the allowed directories above ---
+.env
+.DS_Store
