@@ -6,7 +6,8 @@
   "permissions": {
     "defaultMode": "auto",
     "additionalDirectories": [
-      "/tmp"
+      "/tmp",
+      "~/AppData/Local/Temp"
     ]
   },
   "hooks": {
