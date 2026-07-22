@@ -1,11 +1,10 @@
 {
   "cleanupPeriodDays": 90,
+  "env": {
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
+  },
   "permissions": {
-    "allow": [],
-    "defaultMode": "auto",
-    "additionalDirectories": [
-      "/tmp"
-    ]
+    "defaultMode": "auto"
   },
   "hooks": {
     "UserPromptSubmit": [
@@ -13,11 +12,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "changed=$(git diff --name-only 2>/dev/null); if [ -n \"$changed\" ]; then files=$(echo \"$changed\" | tr '\\n' ', ' | sed 's/,$//'); printf '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"These files have uncommitted changes (possibly manually edited). Re-read before modifying: %s\"}}' \"$files\"; fi"
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Reminder: follow the coding style preferences in ~/.claude/CLAUDE.md when writing or editing code. Re-read any files with uncommitted or manual changes before modifying them.\"}}'"
           },
           {
             "type": "command",
-            "command": "~/.claude/scripts/usage-context.sh",
+            "command": "node ~/.claude/scripts/usage-context.mjs",
             "timeout": 10
           }
         ]
@@ -28,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/scripts/usage-context.sh",
+            "command": "node ~/.claude/scripts/usage-context.mjs",
             "timeout": 10
           }
         ]
@@ -37,12 +36,14 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/scripts/usage-statusline.sh",
+    "command": "node ~/.claude/scripts/usage-statusline.mjs",
     "refreshInterval": 30
   },
   "effortLevel": "xhigh",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
 }

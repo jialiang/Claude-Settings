@@ -6,6 +6,7 @@
 
 # --- Tracked config (un-ignored) ---
 !/.gitignore
+!/.gitattributes
 !/.env.example
 !/CLAUDE.md
 !/settings.json
