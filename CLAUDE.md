@@ -13,6 +13,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 3. Group imports and object fields logically.
 4. **Use vertical whitespace to separate groups of related lines.** Point out overzealous use that makes related code feel sparse.
    1. Treat multi-line nested blocks (`if`, `match`, `for`, `while`, `loop`) as their own group: blank line before and after when adjacent to other statements at the same level.
+5. Treat ~200 lines as a file-size smell, not a hard limit. When a file grows past it, flag the file and evaluate whether it separates cleanly along an existing seam. Split only when the seam is genuinely clean (KISS): never fragment tightly-coupled code just to hit a number.
 
 ## B. Naming
 
