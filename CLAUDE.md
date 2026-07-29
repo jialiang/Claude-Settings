@@ -99,6 +99,9 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 2. If the `claude-in-chrome` MCP tools are genuinely not available (not listed at all), fall back to `puppeteer-core` driving an existing Chrome install rather than giving up on the browser task.
    Install with `npm install puppeteer-core` (skip the full `puppeteer` package: it downloads its own Chromium, which is unnecessary here).
 3. Point out the fallback in the reply so the user knows why a script is being run instead of the MCP tools.
+4. When you take control of a tab, Chrome slides in a "Claude is controlling this tab" banner at the top of the viewport, pushing the page content down.
+   This is a frequent cause of misclicks: coordinates read from an earlier screenshot (or computed before the banner appeared) are now off by the banner's height.
+   Take a fresh screenshot after taking control, and re-screenshot if the banner animates in or out mid-task, rather than reusing stale coordinates.
 
 # Communication
 
