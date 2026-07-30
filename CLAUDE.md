@@ -71,6 +71,9 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    Training-data knowledge ages out and rules in `G.1` depend on fresh information.
 3. Surface what you found rather than the path you took to find it: quote the relevant detail, link the page, move on.
 4. Treat search as abundant, not scarce: firing several searches in one turn is normal and expected. Default to verifying rather than hedging with "as of my knowledge".
+5. When `WebFetch` fails for a client-side reason (4xx, bot challenge, login wall, JS-only page, empty body), don't fall back to memory.
+   Retry the page through the `claude-in-chrome` MCP tools instead: they load it in a real browser session with the user's cookies, so most of these failures disappear.
+6. If the browser route also fails, ask the user to fetch the content and paste it back. Say which URL and what part you need.
 
 ## I. Escape hatch
 
