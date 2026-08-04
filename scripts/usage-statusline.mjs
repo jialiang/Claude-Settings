@@ -33,11 +33,11 @@ function pct(window) {
   return -1
 }
 
-function formatReset(resetsAt) {
-  let mins = Math.floor((Number(resetsAt) - nowEpoch()) / 60)
-  if (mins < 0) mins = 0
-  if (mins >= 60) return `${Math.floor(mins / 60)}h${mins % 60}m`
-  return `${mins}m`
+function formatTimeLeft(resetsAt) {
+  let minutes = Math.floor((Number(resetsAt) - nowEpoch()) / 60)
+  if (minutes < 0) minutes = 0
+  if (minutes >= 60) return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+  return `${minutes}m`
 }
 
 const data = parseJson(readStdin())
@@ -58,9 +58,14 @@ if (existsSync(stateFile)) {
     const p5 = pct(state.five_hour)
     const p7 = pct(state.seven_day)
 
-    if (p5 >= 0) usage += ` | 5h: ${p5}% (resets ${formatReset(state.five_hour.resets_at)})`
-    if (p7 >= 0) usage += ` | 7d: ${p7}% (resets ${formatReset(state.seven_day.resets_at)})`
+    if (p5 >= 0) usage += ` | 5h: ${p5}% (${formatTimeLeft(state.five_hour.resets_at)})`
+    if (p7 >= 0) usage += ` | 7d: ${p7}% (${formatTimeLeft(state.seven_day.resets_at)})`
   }
 }
 
-process.stdout.write(`${model} | ${dir}${usage}`)
+// Live context usage: only present once the session has made an API call, and
+// absent again after /compact until the next one.
+const contextUsed = pct(data?.context_window)
+const context = contextUsed >= 0 ? ` | Context: ${contextUsed}%` : ''
+
+process.stdout.write(`${model} | ${dir}${usage}${context}`)
