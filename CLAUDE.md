@@ -1,6 +1,10 @@
 # Model
 
 1. Always explicitly use Opus with the 1M context window for subagents unless instructed otherwise.
+2. A skill or workflow that recommends a model for its own agents overrides rule 1: follow its
+   recommendation. Those recommendations are tuned to the run's shape (fan-out width, cost per
+   agent, how much the task actually needs), which rule 1 can't see.
+3. Say which model you picked and why when you deviate from rule 1, so the cost is a visible choice.
 
 # Coding style preferences
 
