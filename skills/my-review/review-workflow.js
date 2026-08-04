@@ -17,8 +17,13 @@ export const meta = {
 //   {
 //     target:      string,    // verbatim user scope/instructions, or ""
 //     diffCommand: string,    // REQUIRED — exact git diff command a reviewer runs
-//     model:       string,    // REQUIRED — model for every engine agent (e.g.
-//                             // 'opus'), or 'inherit' for the session model
+//     model:       string,    // REQUIRED — model for the finders, and the fallback
+//                             // for the two stages below. 'inherit' = session model
+//     verifyModel?:      string, // verify-stage model (defaults to `model`)
+//     consolidateModel?: string, // consolidate-stage model (defaults to `model`)
+//                             // Finders are the bulk of the spend and the stage
+//                             // where recall matters most, so the judgment stages
+//                             // can run on a cheaper model independently of them.
 //     lenses:      string[],  // REQUIRED — lens keys to run, from LENS_REGISTRY
 //     claudeMd:    Array<{path, content}>, // the GLOBAL (user-level ~/.claude)
 //                             // CLAUDE.md only — read by the main loop and inlined
@@ -106,7 +111,12 @@ const DIFF_CMD = A.diffCommand
 const CLAUDE_MD = normalizeClaudeMd(A.claudeMd)
 const TOPICS = A.topics || []
 const LENS_KEYS = A.lenses
-const MODEL = A.model === 'inherit' ? undefined : A.model
+// 'inherit' means no override: the agent runs on the session model.
+const resolveModel = name => (name === 'inherit' ? undefined : name)
+
+const MODEL = resolveModel(A.model)
+const VERIFY_MODEL = resolveModel(A.verifyModel || A.model)
+const CONSOLIDATE_MODEL = resolveModel(A.consolidateModel || A.model)
 
 // Verify and consolidate are the judgment stages — pin them to high reasoning
 // effort regardless of session effort. Finders deliberately inherit the session
@@ -216,8 +226,15 @@ const FINDER_ITEMS = TOPICS.flatMap(t =>
   lensesForTopic(t).map(lens => ({ topic: t, lens }))
 )
 
+// Name every stage's model only when they differ, so the common single-model
+// run keeps its short line and a split one is impossible to miss.
+const modelSummary =
+  VERIFY_MODEL === MODEL && CONSOLIDATE_MODEL === MODEL
+    ? `model: ${A.model}`
+    : `models: find ${A.model} / verify ${A.verifyModel || A.model} / consolidate ${A.consolidateModel || A.model}`
+
 log(
-  `${TOPICS.length} topic(s), ${FINDER_ITEMS.length} finder(s), lenses: [${LENS_KEYS.join(', ')}], model: ${A.model} over: ${DIFF_CMD}`
+  `${TOPICS.length} topic(s), ${FINDER_ITEMS.length} finder(s), lenses: [${LENS_KEYS.join(', ')}], ${modelSummary} over: ${DIFF_CMD}`
 )
 
 const SCOPE_BLOCK =
@@ -431,7 +448,7 @@ const verified = (
       agent(verifyBatchPrompt(batch), {
         label: `verify:${batch.length}×(${batch[0].file})`,
         phase: 'Verify',
-        model: MODEL,
+        model: VERIFY_MODEL,
         effort: JUDGMENT_EFFORT,
         schema: VERDICT_BATCH_SCHEMA
       })
@@ -472,7 +489,7 @@ if (survivors.length) {
   const res = await agent(consolidatePrompt(survivors), {
     label: 'consolidate',
     phase: 'Consolidate',
-    model: MODEL,
+    model: CONSOLIDATE_MODEL,
     effort: JUDGMENT_EFFORT,
     schema: CLUSTER_SCHEMA
   }).catch(() => null)

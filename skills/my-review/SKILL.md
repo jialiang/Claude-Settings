@@ -30,6 +30,8 @@ For each topic decide its **resolution** and set the `split` flag explicitly —
 
 **Cost check before you launch.** Finder count = (split:true topics × lenses) + (split:false topics), plus a handful of verify + one consolidate agent. Each finder runs ~50–90k tokens. So a 10-lens run over 4 split topics is ~40+ finders — multiple million tokens and tens of minutes. Size `split`/`lenses` to the diff and the caller's budget, and default to **`model: "sonnet"`** for large runs (it caught the same real bugs here at a fraction of Opus's cost); reserve Opus for small, high-stakes diffs.
 
+`model` sets the **finders**, which are the bulk of the spend. `verifyModel` and `consolidateModel` override the two judgment stages independently (both default to `model`). So a high-stakes diff can buy Opus recall on the breadth pass and still settle verdicts on Sonnet, or the reverse: cheap finders feeding an Opus judge. Pick per run.
+
 Trivial change? It's fine to run inline without the workflow at all — the engine earns its keep on multi-file or multi-topic reviews.
 
 ## 2. Choose lenses — ask the user (inline)
@@ -64,7 +66,9 @@ Workflow({
   args: {
     target: "<verbatim user scope/instructions, or ''>",
     diffCommand: "<exact git diff command>",                    // REQUIRED
-    model: "opus",                                              // REQUIRED — or "inherit" for the session model
+    model: "opus",                                              // REQUIRED — finders + fallback for the stages below; "inherit" = session model
+    verifyModel: "sonnet",                                      // optional — verify stage only (defaults to model)
+    consolidateModel: "sonnet",                                 // optional — consolidate stage only (defaults to model)
     lenses: ["A:line-scan", "B:removed-behavior", "C:cross-file", "D:lang-pitfalls", "security"],  // REQUIRED — built from the user's checkbox selection in step 2
     claudeMd: [                                                 // GLOBAL (~/.claude) CLAUDE.md ONLY — inlined into every finder/verify prompt
       { path: "~/.claude/CLAUDE.md", content: "<file contents>" }
