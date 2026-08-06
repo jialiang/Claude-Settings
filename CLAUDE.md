@@ -98,6 +98,12 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 4. Feel free to `git clone` a repo into the temp directory when you need to read more than a couple of files from it (exploring an unfamiliar dependency, cross-referencing implementation details, vendoring for a one-off task).
    Cloning + local `Grep`/`Read` is faster and more reliable than fetching GitHub blobs one by one. It also keeps the working directory clean.
 
+# Permissions
+
+1. When the auto-mode permission classifier denies a tool call, prefer asking me for permission over working around it.
+2. Say which call was blocked and why it is needed, then let me decide. A denial is a decision point, not an obstacle to route around.
+3. Rewriting a command to slip past the check is the worst option: it defeats the guardrail and usually produces a worse command than the one that was blocked.
+
 # Browser automation
 
 1. If the `claude-in-chrome` MCP tools are listed as available but a call misbehaves (whole tool fails, screenshot returns blank/errors, devtools features not responding, etc.), do not silently reach for a workaround.
