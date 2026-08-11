@@ -8,6 +8,10 @@ import { join, basename } from 'node:path'
 
 const stateFile = join(homedir(), '.claude', 'usage-state.json')
 
+// The state file only carries reset times, so window spans have to be assumed.
+const fiveHourSeconds = 5 * 60 * 60
+const sevenDaySeconds = 7 * 24 * 60 * 60
+
 function nowEpoch() {
   return Math.floor(Date.now() / 1000)
 }
@@ -40,6 +44,19 @@ function formatTimeLeft(resetsAt) {
   return `${minutes}m`
 }
 
+// How far through the window we are, which is also the usage a steady burn
+// would show at this moment if it were on track to hit exactly 100% at reset.
+// Actual above this figure means burning faster than the window allows.
+function pacePercent(resetsAt, windowSeconds) {
+  const elapsed = windowSeconds - (Number(resetsAt) - nowEpoch())
+  return Math.min(100, Math.max(0, Math.floor((elapsed / windowSeconds) * 100)))
+}
+
+function formatWindow(label, window, windowSeconds) {
+  const pace = pacePercent(window.resets_at, windowSeconds)
+  return `${label}: ${pct(window)}%/${pace}% (${formatTimeLeft(window.resets_at)})`
+}
+
 const data = parseJson(readStdin())
 
 // Persist rate_limits (plus a capture timestamp) whenever Claude sends them.
@@ -58,8 +75,8 @@ if (existsSync(stateFile)) {
     const p5 = pct(state.five_hour)
     const p7 = pct(state.seven_day)
 
-    if (p5 >= 0) usage += ` | 5h: ${p5}% (${formatTimeLeft(state.five_hour.resets_at)})`
-    if (p7 >= 0) usage += ` | 7d: ${p7}% (${formatTimeLeft(state.seven_day.resets_at)})`
+    if (p5 >= 0) usage += ` | ${formatWindow('5h', state.five_hour, fiveHourSeconds)}`
+    if (p7 >= 0) usage += ` | ${formatWindow('7d', state.seven_day, sevenDaySeconds)}`
   }
 }
 
