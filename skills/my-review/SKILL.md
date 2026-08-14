@@ -43,7 +43,7 @@ Skip the ask only when the user already named the lenses or asked for a named pr
 **How to ask.** `AskUserQuestion` caps a question at 4 options, so split the ten lenses across two multi-select questions:
 
 - **Q1 — Correctness & substantive** (multiSelect): `Correctness angles (A–D)` · `Security` · `Spec & user-flow`
-- **Q2 — Cosmetic / nits** (multiSelect): `Style (CLAUDE.md)` · `DRY / reuse` · `Dead code` · `File size`
+- **Q2 — Cosmetic / nits** (multiSelect): `Style (CLAUDE.md)` · `DRY / reuse` · `Dead code` · `Comments`
 
 `Correctness angles (A–D)` bundles the four search methods (`A:line-scan`, `B:removed-behavior`, `C:cross-file`, `D:lang-pitfalls`) — they're always run together. Map every checked box back to its exact lens key(s) for the `lenses` arg. The auto-added "Other" lets the user name individual keys or split the bundle. Keep the Q1/Q2 option lists in sync with `LENS_REGISTRY` in `review-workflow.js` (the source of truth for lens keys): a lens added there won't appear as a checkbox until it's added here too.
 
@@ -95,7 +95,7 @@ The lens definitions (and their exact keys) are the source of truth in `review-w
 
 - **Correctness angles** (distinct *search methods*, complementary not overlapping): **A** line-by-line scan incl. enclosing function · **B** removed-behavior auditor (audits *deletions*) · **C** cross-file tracer (greps callers) · **D** language/framework pitfalls.
 - **Substantive dimensions**: **security** (data-flow to sinks; skip theoretical noise) · **spec/user-flow**.
-- **Cosmetic dimensions**: **style** (CLAUDE.md, esp. comments + vertical spacing; quote-the-rule) · **DRY** · **dead code** · **file-size/structure** (flag files ≫200 lines that should *and* can split cleanly).
+- **Cosmetic dimensions**: **style** (CLAUDE.md code shape, esp. vertical spacing; quote-the-rule) · **DRY** · **dead code** · **comments** (wordy/redundant/noisy/stale comments and change-narration; quote-the-rule).
 
 To iterate on the engine, edit `review-workflow.js` and re-launch with the same `scriptPath`. To resume after an edit, pass `resumeFromRunId` from the prior run (unchanged finders return cached).
 
