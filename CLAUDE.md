@@ -98,6 +98,17 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 4. Feel free to `git clone` a repo into the temp directory when you need to read more than a couple of files from it (exploring an unfamiliar dependency, cross-referencing implementation details, vendoring for a one-off task).
    Cloning + local `Grep`/`Read` is faster and more reliable than fetching GitHub blobs one by one. It also keeps the working directory clean.
 
+# Shell commands
+
+1. Issue each command as its own standalone call with absolute, literal paths.
+2. Don't chain `cd <dir> && <command>`. The Bash tool's working directory persists between calls, so the `cd` buys nothing and it turns the whole line into a compound the permission pre-check has to reject.
+3. Keep write and delete targets absolute (`rm -rf "C:/Users/Jia Liang/Desktop/project/build"`, not `rm -rf build`).
+   On Windows the pre-check resolves a relative target against the post-`cd` directory to rule out a Cygwin-emulated symlink escaping the allowed directories. When that directory is only known at runtime the check can't run, so the command falls through to a manual prompt.
+4. In any command that writes, avoid shell variables, `$(...)`, subshells and heredocs.
+   Each of these is a runtime-only value, which makes the command statically unanalysable and forces the same manual prompt.
+5. Splitting a long `&&` chain into separate calls is preferred anyway: read the output of each step instead of assuming the chain reached the end.
+6. If a chain genuinely has to be atomic, keep it and accept the prompt. Say why it can't be split.
+
 # Permissions
 
 1. When the auto-mode permission classifier denies a tool call, prefer asking me for permission over working around it.
