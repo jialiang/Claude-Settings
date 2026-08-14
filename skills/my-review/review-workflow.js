@@ -170,7 +170,7 @@ const LENS_REGISTRY = [
   },
   {
     key: 'style',
-    text: 'Conform to the CLAUDE.md files in scope, especially comments (no noise/restatement, no change-narration like "// removed X", no banner/separator comments, comment why not what, no stale comments) and vertical spacing (blank lines separate logical groups; nested blocks get a blank line before/after when adjacent to siblings; flag both packed AND overly-sparse code). Also guard clauses over if/else, flat control flow, no horizontal alignment, no Oxford comma. LOCAL CONSISTENCY WINS: for a punctuation/spacing/wording preference (e.g. em-dashes vs colons in comments), first sample 2-3 sibling files in the same directory — if the flagged pattern matches the prevailing local style, do NOT flag it (the established codebase convention overrides the stated preference; most CLAUDE.md style rules carry this escape hatch explicitly). QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact line that breaks it AND the local style does not already contradict the rule.'
+    text: 'Conform to the CLAUDE.md files in scope, especially vertical spacing (blank lines separate logical groups; nested blocks get a blank line before/after when adjacent to siblings; flag both packed AND overly-sparse code). Also guard clauses over if/else, flat control flow, no horizontal alignment, no Oxford comma. Comment QUALITY is out of scope here — the comments lens owns it. LOCAL CONSISTENCY WINS: for a punctuation/spacing/wording preference (e.g. blank-line density, brace style), first sample 2-3 sibling files in the same directory — if the flagged pattern matches the prevailing local style, do NOT flag it (the established codebase convention overrides the stated preference; most CLAUDE.md style rules carry this escape hatch explicitly). QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact line that breaks it AND the local style does not already contradict the rule.'
   },
   {
     key: 'dry',
@@ -181,8 +181,8 @@ const LENS_REGISTRY = [
     text: 'Unused vars/imports/exports/branches, unreachable paths, leftover scaffolding, commented-out blocks, props/params nothing consumes.'
   },
   {
-    key: 'file-size',
-    text: 'Flag any file significantly over ~200 lines. For each, judge whether it SHOULD be broken down (distinct visual sections, mixed concerns, a .map() rendering complex cards) and whether it CAN be split cleanly (presentational extraction) vs tightly-coupled state where splitting just creates prop-drilling churn. Only flag when a clean, worthwhile split exists.'
+    key: 'comments',
+    text: 'Judge the comments the diff ADDS or touches, plus any pre-existing comment the diff made wrong. Flag: restatement of the code ("// increment counter"), change-narration ("// removed X", "// now using Y", "// fixed: ..."), annotation of the obvious, wordy multi-sentence prose where one clause would do, the same idea repeated across several comments, banner/separator markers ("// ===== SECTION ====="), and comments gone stale against the code they sit above. Also flag build-process vocabulary that means nothing to a reader who has not seen the plan docs or issue tracker: phase/milestone codes, ticket refs, audit-item codes, internal slang. Comment WHY, not WHAT: a comment carrying a non-obvious reason, the domain convention behind a name, or a real gotcha is GOOD and must not be flagged. Quote the replacement or say "delete" for every flag. LOCAL CONSISTENCY WINS: sample 2-3 sibling files in the same directory first — if the pattern is the prevailing local style (a file that already uses separator comments throughout, a directory where em-dash clauses are the norm), do NOT flag it. QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact comment line that breaks it.'
   }
 ]
 
