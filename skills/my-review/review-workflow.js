@@ -1,9 +1,9 @@
 export const meta = {
   name: 'my-review-engine',
-  description: 'Find→verify→cluster engine for my-review: fans out the caller-chosen lenses per topic, verifies each candidate with a CONFIRMED/PLAUSIBLE/REFUTED verdict ladder (+ severity/impact), clusters survivors by root cause, returns them for the main loop to triage',
+  description: 'Find→verify→cluster engine for my-review: fans out the caller-chosen lenses per topic, verifies each candidate with a CONFIRMED/PLAUSIBLE/REFUTED verdict ladder (+ A-E/P action bucket, severity, impact), clusters survivors by root cause, returns them for the main loop to triage',
   phases: [
     { title: 'Find', detail: 'lens × topic finders surface candidates' },
-    { title: 'Verify', detail: 'batched — one verdict + severity/impact per candidate; drop REFUTED' },
+    { title: 'Verify', detail: 'batched — one verdict + bucket/severity/impact per candidate; drop REFUTED' },
     { title: 'Consolidate', detail: 'cluster survivors by root cause' }
   ]
 }
@@ -145,19 +145,19 @@ function verifyBatchSize(candidateCount) {
 // cosmetic dimensions.
 const LENS_REGISTRY = [
   {
-    key: 'A:line-scan',
+    key: 'line-scan',
     text: 'Read every hunk line by line AND the enclosing function (bugs in unchanged lines of a touched function are in scope). For each line ask what input/state/timing/platform makes it wrong: inverted/wrong conditions, off-by-one, null/undefined deref, missing await, falsy-zero checks, wrong-variable copy-paste, errors swallowed in catch, unescaped regex metachars.'
   },
   {
-    key: 'B:removed-behavior',
+    key: 'removed-behavior',
     text: 'For every line the diff DELETES or replaces, name the invariant or behavior it enforced, then find where the new code re-establishes it. If you cannot find it, that is a finding: a dropped guard, removed error path, narrowed validation, or a deleted test that covered a real case.'
   },
   {
-    key: 'C:cross-file',
+    key: 'cross-file',
     text: 'For each function/symbol the diff changes, Grep its callers and check the change does not break them: a new return shape, a new thrown exception, changed nullability, or a timing/ordering dependency a parallel change introduced.'
   },
   {
-    key: 'D:lang-pitfalls',
+    key: 'lang-pitfalls',
     text: "Scan for the classic footguns of this stack: JS falsy-zero, == coercion, closure-captured loop var, floating-point equality, timezone/DST drift, React hook-after-return / stale closure / missing useEffect cleanup. Flag any instance the diff introduces."
   },
   {
@@ -267,12 +267,14 @@ const CANDIDATES_SCHEMA = {
 // the [index] of the candidate in its batch that it judges.
 const VERDICT_ITEM = {
   type: 'object',
-  required: ['index', 'verdict', 'severity', 'impact', 'evidence'],
+  required: ['index', 'verdict', 'bucket', 'severity', 'impact', 'evidence'],
   properties: {
     index: { type: 'number', description: 'the [n] index of the candidate this verdict is for' },
     verdict: { enum: ['CONFIRMED', 'PLAUSIBLE', 'REFUTED'] },
-    severity: { enum: ['high', 'medium', 'low'], description: 'high=security/data-loss/broken-core/correctness; medium=DRY/dead-code/real-style; low=polish' },
+    bucket: { enum: ['A', 'B', 'C', 'D', 'E', 'P'], description: 'what the human has to DO about it: A=fix is fully determined by the code; B=real issue, fix needs a decision; C=real but only fires under narrow conditions; D=works but deviates from spec/convention (judgement call); E=none of A-D fit; P=defective code is untouched by this diff (pre-existing)' },
+    severity: { enum: ['high', 'medium', 'low', 'n/a'], description: "cost if left unfixed. 'n/a' for bucket A only. For bucket C this is severity IF the narrow trigger fires" },
     impact: { enum: ['cross-tenant', 'same-tenant', 'correctness', 'style'], description: 'blast radius class of the failure' },
+    why_not_abcd: { type: 'string', description: 'REQUIRED when bucket is E: which bucket it was closest to, and the specific thing that disqualified it' },
     evidence: { type: 'string', description: 'the line(s) that confirm or disprove it' }
   }
 }
@@ -293,11 +295,12 @@ const CLUSTER_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        required: ['title', 'severity', 'impact', 'members'],
+        required: ['title', 'bucket', 'severity', 'impact', 'members'],
         properties: {
           title: { type: 'string', description: 'short name for the root-cause issue' },
           rootCause: { type: 'string', description: 'the single underlying cause the members share' },
-          severity: { enum: ['high', 'medium', 'low'], description: 'highest severity among the members' },
+          bucket: { enum: ['A', 'B', 'C', 'D', 'E', 'P'], description: 'the most attention-demanding bucket among the members, in the order B > D > E > C > A. P members are never mixed with non-P' },
+          severity: { enum: ['high', 'medium', 'low', 'n/a'], description: "highest severity among the members; 'n/a' only when the whole cluster is bucket A" },
           impact: { enum: ['cross-tenant', 'same-tenant', 'correctness', 'style'] },
           fix: { type: 'string', description: 'the one fix that resolves all members' },
           members: { type: 'array', items: { type: 'number' }, description: 'indexes into the findings list that share this root cause' }
@@ -328,11 +331,19 @@ function verifyBatchPrompt(batch) {
     `${SCOPE_BLOCK}\n` +
     `Candidates:\n${list}\n\n` +
     `BEFORE you confirm any candidate, trace the data flow BOTH directions across files: for any "missing X" finding (missing validation/guard/sanitize/ownership-check), Grep for X in the sibling routes, the render/consumer side, the RLS policies and the shared helpers. A guard that lives in another file REFUTES the finding — the finder only saw one slice and cannot see it.\n\n` +
-    `Return one verdict object PER candidate, each carrying that candidate's [index], exactly one verdict, a severity and an impact class:\n` +
+    `Return one verdict object PER candidate, each carrying that candidate's [index], exactly one verdict, one bucket, a severity and an impact class:\n` +
     `- CONFIRMED — you can name the inputs/state that trigger it and the wrong output/crash. Quote the line.\n` +
     `- PLAUSIBLE — the mechanism is real but the trigger is uncertain (timing, env, config, rare-but-reachable path). State what would confirm it.\n` +
     `- REFUTED — factually wrong (code doesn't say that) or already guarded elsewhere (quote the guard you found).\n\n` +
-    `severity: high (security/auth, data loss, broken core flow, correctness bug, spec violation) | medium (DRY/reuse, dead code, real style violation) | low (polish/nit).\n` +
+    `bucket answers a DIFFERENT question from verdict: verdict is whether the claim is TRUE, bucket is what the human has to DO about it. They are independent — a CONFIRMED finding can sit in any bucket.\n` +
+    `- P — the defective code is UNCHANGED by this diff (pre-existing, e.g. an unchanged line of a function the diff touched). Decide this FIRST: P wins over A-E, because it is out of scope for this branch and must not be fixed here.\n` +
+    `- A — the fix is fully determined by the code itself: no design choice, no API choice, no behavior change beyond restoring evident intent. TEST: if two reasonable fixes exist, it is NOT A, it is B. If you would need to ask the author anything, it is NOT A.\n` +
+    `- B — clearly a real issue, but the fix needs a decision: a design or API choice, a tradeoff, or a change touching many call sites.\n` +
+    `- C — the mechanism is real but it only fires under a narrow, unlikely combination of conditions. Do NOT use C merely because you are unsure the claim is true — that is what PLAUSIBLE is for. C means "true, but rarely reachable".\n` +
+    `- D — the code WORKS; it just deviates from a spec, a documented convention or the established pattern, and what it does is a defensible alternative. This is a judgement call for the author, not a defect.\n` +
+    `- E — none of A-D genuinely fit. Last resort: you MUST fill why_not_abcd with the closest bucket and what disqualified it. Do not use E to avoid deciding.\n\n` +
+    `severity: high (security/auth, data loss, broken core flow, correctness bug, spec violation) | medium (DRY/reuse, dead code, real style violation) | low (polish/nit) | n/a (bucket A ONLY — nobody ranks these, they get fixed as a batch).\n` +
+    `For bucket C, severity is the cost IF the narrow trigger fires, NOT discounted by how unlikely it is: a rare path that corrupts data is high.\n` +
     `impact: cross-tenant (one tenant reaches another's data/actions) | same-tenant (within-tenant integrity/privilege) | correctness (wrong output/crash, single user) | style (no observable runtime effect).\n` +
     `Do NOT tag \`cross-tenant\` unless you can NAME the two distinct tenants (e.g. studio A vs studio B, or user X vs user Y) AND the concrete path by which one reaches the other's data or actions. If every id in play is scoped to a single tenant (a project / escalation / quote that belongs to one studio), the worst case is \`same-tenant\`. When the boundary-crossing is unproven, default down to \`same-tenant\` or \`correctness\` — never inflate to \`cross-tenant\` on suspicion, and do not let a \`cross-tenant\` guess drive the severity to high.\n\n` +
     `PLAUSIBLE is the default, NOT REFUTED. Do not refute for being "speculative" when the state is realistic (concurrency races, null on a rare path, falsy-zero, off-by-one on a boundary the code doesn't exclude, a regex/allowlist that lost an anchor). REFUTE only when you can construct the disproof from the code: factually wrong (quote the line), provably impossible (show the type/constant/invariant), already handled (cite the guard you found by tracing across files), or pure style with no observable effect.\n\n` +
@@ -347,7 +358,7 @@ function chunk(items, size) {
 }
 
 function unverifiedCandidate(c, reason) {
-  return { ...c, verdict: 'PLAUSIBLE', severity: 'unknown', impact: 'unknown', unverified: true, evidence: reason }
+  return { ...c, verdict: 'PLAUSIBLE', bucket: 'unknown', severity: 'unknown', impact: 'unknown', unverified: true, evidence: reason }
 }
 
 // Map a batch's returned verdicts back onto its candidates by [index]. A missing
@@ -365,28 +376,40 @@ function applyVerdicts(batch, result) {
     const v = byIndex.get(i)
     if (!v) return unverifiedCandidate(c, 'no verdict returned for this candidate in the batch')
 
-    return { ...c, verdict: v.verdict, severity: v.severity, impact: v.impact, evidence: v.evidence }
+    return {
+      ...c,
+      verdict: v.verdict,
+      bucket: v.bucket,
+      severity: v.severity,
+      impact: v.impact,
+      evidence: v.evidence,
+      ...(v.why_not_abcd ? { why_not_abcd: v.why_not_abcd } : {})
+    }
   })
 }
 
-function severityHistogram(items) {
-  const histogram = { high: 0, medium: 0, low: 0, unknown: 0 }
+function histogram(items, field, seed) {
+  const counts = { ...seed, unknown: 0 }
 
   for (const item of items) {
-    const severity = item.severity || 'unknown'
-    histogram[severity] = (histogram[severity] || 0) + 1
+    const key = item[field] || 'unknown'
+    counts[key] = (counts[key] || 0) + 1
   }
 
-  return histogram
+  return counts
 }
+
+const SEVERITY_SEED = { high: 0, medium: 0, low: 0, 'n/a': 0 }
+const BUCKET_SEED = { A: 0, B: 0, C: 0, D: 0, E: 0, P: 0 }
 
 function consolidatePrompt(survivors) {
   const list = survivors
-    .map((s, i) => `[${i}] (${s.verdict}/${s.severity}/${s.impact}) ${s.file}${s.line ? ':' + s.line : ''} — ${s.summary}`)
+    .map((s, i) => `[${i}] (${s.verdict}/${s.bucket}/${s.severity}/${s.impact}) ${s.file}${s.line ? ':' + s.line : ''} — ${s.summary}`)
     .join('\n')
   return (
     `These are the verified survivors of a code review. Many describe the SAME underlying problem found from different angles or at adjacent lines (e.g. one cross-tenant hole flagged by 5 lenses).\n\n` +
-    `Cluster them by ROOT CAUSE — one cluster per distinct issue a developer would fix in one place. Every finding index must appear in exactly one cluster. A cluster's severity is the HIGHEST among its members. Give each cluster a short title, the shared root cause, the single fix that resolves all members, and the list of member indexes.\n\n` +
+    `Cluster them by ROOT CAUSE — one cluster per distinct issue a developer would fix in one place. Every finding index must appear in exactly one cluster. Give each cluster a short title, the shared root cause, the single fix that resolves all members, and the list of member indexes.\n\n` +
+    `A cluster's severity is the HIGHEST among its members. A cluster's bucket is the MOST ATTENTION-DEMANDING among its members, in the order B > D > E > C > A: one member needing a decision makes the whole cluster need a decision. NEVER put a P member in a cluster with non-P members — pre-existing code is a separate scope decision, so split the cluster instead.\n\n` +
     `Findings:\n${list}\n\n` +
     `Return structured output only.`
   )
@@ -475,8 +498,10 @@ const compact = (f) => ({
   summary: f.summary,
   lens: f.lens,
   verdict: f.verdict,
+  bucket: f.bucket,
   severity: f.severity,
   impact: f.impact,
+  ...(f.why_not_abcd ? { why_not_abcd: f.why_not_abcd } : {}),
   ...(f.unverified ? { unverified: true } : {})
 })
 
@@ -503,6 +528,7 @@ if (survivors.length) {
       return {
         title: cl.title,
         rootCause: cl.rootCause || '',
+        bucket: cl.bucket || 'unknown',
         severity: cl.severity || 'unknown',
         impact: cl.impact || 'unknown',
         fix: cl.fix || '',
@@ -516,6 +542,7 @@ if (survivors.length) {
     clusters.push({
       title: s.summary,
       rootCause: '',
+      bucket: s.bucket || 'unknown',
       severity: s.severity || 'unknown',
       impact: s.impact || 'unknown',
       fix: s.fix || '',
@@ -538,7 +565,8 @@ return {
     survivors: survivors.length,
     unverified,
     clusters: clusters.length,
-    bySeverity: severityHistogram(clusters),
+    byBucket: histogram(clusters, 'bucket', BUCKET_SEED),
+    bySeverity: histogram(clusters, 'severity', SEVERITY_SEED),
     lenses: LENS_KEYS
   }
 }
