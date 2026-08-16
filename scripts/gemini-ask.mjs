@@ -43,10 +43,10 @@ function loadEnv() {
 function readStdin() {
   if (process.stdin.isTTY) return Promise.resolve('')
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let data = ''
     process.stdin.setEncoding('utf8')
-    process.stdin.on('data', (chunk) => (data += chunk))
+    process.stdin.on('data', chunk => (data += chunk))
     process.stdin.on('end', () => resolve(data))
   })
 }
@@ -55,7 +55,7 @@ function parseArgs(argv) {
   const args = [...argv]
   let model = null
 
-  const flagIdx = args.findIndex((a) => a === '--model' || a === '-m')
+  const flagIdx = args.findIndex(a => a === '--model' || a === '-m')
   if (flagIdx !== -1) {
     model = args[flagIdx + 1]
     args.splice(flagIdx, 2)
@@ -89,7 +89,7 @@ async function main() {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+    body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] }),
   })
 
   if (!res.ok) {
@@ -99,7 +99,7 @@ async function main() {
   }
 
   const json = await res.json()
-  const text = json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') ?? ''
+  const text = json?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ?? ''
 
   if (!text) {
     console.error('Gemini returned no text. Full response:')
@@ -110,7 +110,7 @@ async function main() {
   console.log(text)
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error('Unexpected error:', err)
   process.exit(1)
 })

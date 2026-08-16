@@ -11,11 +11,16 @@ import { homedir } from 'node:os'
 
 const ATOMIC_ESCAPE = /(^|\s)#\s*atomic\b/i
 
+// One line per shell family (POSIX, then PowerShell), which the formatter would
+// otherwise flatten to one name per line.
+// prettier-ignore
 const DIRECTORY_CHANGERS = new Set([
   'cd', 'chdir', 'pushd', 'popd',
   'set-location', 'sl', 'push-location', 'pop-location',
 ])
 
+// Grouped as above: POSIX, cmd, PowerShell verb-noun, then PowerShell writers.
+// prettier-ignore
 const FILE_MUTATORS = new Set([
   'rm', 'rmdir', 'mv', 'cp', 'mkdir', 'touch', 'tee', 'ln', 'install',
   'del', 'erase', 'rd', 'md', 'move', 'copy',
@@ -85,8 +90,8 @@ function splitTopLevel(command) {
     }
 
     // `2>&1` and `&>log` are redirections, not the background `&` that ends a command.
-    const isRedirectAmpersand = character === '&'
-      && (command[index + 1] === '>' || current.endsWith('>'))
+    const isRedirectAmpersand =
+      character === '&' && (command[index + 1] === '>' || current.endsWith('>'))
 
     if (depth === 0 && !isRedirectAmpersand && ';|&\n'.includes(character)) {
       segments.push(current)
@@ -211,10 +216,13 @@ function findViolations(command) {
     const shown = segment.replace(/\s+/g, ' ')
 
     if (isChained && DIRECTORY_CHANGERS.has(word)) {
-      violations.push(`\`${shown}\` chains a directory change into another command, so `
-        + `every later path resolves against a directory only known at runtime (rule 2). `
-        + `The working directory persists between calls: drop the \`cd\` and use absolute `
-        + `paths, or a tool flag such as \`git -C "<absolute path>"\`.`)
+      const message =
+        `\`${shown}\` chains a directory change into another command, so ` +
+        `every later path resolves against a directory only known at runtime (rule 2). ` +
+        `The working directory persists between calls: drop the \`cd\` and use absolute ` +
+        `paths, or a tool flag such as \`git -C "<absolute path>"\`.`
+
+      violations.push(message)
       continue
     }
 
@@ -225,9 +233,12 @@ function findViolations(command) {
     for (const [pattern, description] of RUNTIME_VALUES) {
       if (!pattern.test(stripSingleQuoted(segment))) continue
 
-      violations.push(`\`${shown}\` writes through ${description}, whose value does not `
-        + `exist until the command runs (rule 4). Inline the literal path, or use the `
-        + `Write tool if you are producing file contents.`)
+      const message =
+        `\`${shown}\` writes through ${description}, whose value does not ` +
+        `exist until the command runs (rule 4). Inline the literal path, or use the ` +
+        `Write tool if you are producing file contents.`
+
+      violations.push(message)
       break
     }
 
@@ -237,9 +248,12 @@ function findViolations(command) {
 
       const example = `${homedir().replace(/\\/g, '/')}/.../${target.replace(/^\.\//, '')}`
 
-      violations.push(`\`${shown}\` writes to the relative target \`${target}\`, which `
-        + `resolves against an unknown working directory (rule 3). Spell it out in full, `
-        + `e.g. \`"${example}"\`.`)
+      const message =
+        `\`${shown}\` writes to the relative target \`${target}\`, which ` +
+        `resolves against an unknown working directory (rule 3). Spell it out in full, ` +
+        `e.g. \`"${example}"\`.`
+
+      violations.push(message)
     }
   }
 
@@ -250,7 +264,9 @@ function readStdin() {
   return new Promise(resolve => {
     let data = ''
     process.stdin.setEncoding('utf8')
-    process.stdin.on('data', chunk => { data += chunk })
+    process.stdin.on('data', chunk => {
+      data += chunk
+    })
     process.stdin.on('end', () => resolve(data))
     process.stdin.on('error', () => resolve(''))
   })
@@ -262,18 +278,24 @@ try {
   const violations = ATOMIC_ESCAPE.test(command) ? [] : findViolations(command)
 
   if (violations.length > 0) {
-    const reason = 'Blocked before the permission check: this command cannot be judged '
-      + 'statically, so it would stall on a manual approval prompt.\n\n'
-      + violations.slice(0, 5).map((text, index) => `${index + 1}. ${text}`).join('\n\n')
-      + '\n\nRewrite it as standalone calls with absolute, literal paths and run it again. '
-      + 'If it genuinely has to stay atomic, append `# atomic` to the command and say why.'
+    const reason =
+      'Blocked before the permission check: this command cannot be judged ' +
+      'statically, so it would stall on a manual approval prompt.\n\n' +
+      violations
+        .slice(0, 5)
+        .map((text, index) => `${index + 1}. ${text}`)
+        .join('\n\n') +
+      '\n\nRewrite it as standalone calls with absolute, literal paths and run it again. ' +
+      'If it genuinely has to stay atomic, append `# atomic` to the command and say why.'
 
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: 'PreToolUse',
-        permissionDecision: 'deny',
-        permissionDecisionReason: reason,
-      },
-    }))
+    process.stdout.write(
+      JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          permissionDecision: 'deny',
+          permissionDecisionReason: reason,
+        },
+      }),
+    )
   }
 } catch {}

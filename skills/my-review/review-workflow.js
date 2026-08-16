@@ -1,11 +1,15 @@
 export const meta = {
   name: 'my-review-engine',
-  description: 'Find→verify→cluster engine for my-review: fans out the caller-chosen lenses per topic, verifies each candidate with a CONFIRMED/PLAUSIBLE/REFUTED verdict ladder (+ A-E/P action bucket, severity, impact), clusters survivors by root cause, returns them for the main loop to triage',
+  description:
+    'Find→verify→cluster engine for my-review: fans out the caller-chosen lenses per topic, verifies each candidate with a CONFIRMED/PLAUSIBLE/REFUTED verdict ladder (+ A-E/P action bucket, severity, impact), clusters survivors by root cause, returns them for the main loop to triage',
   phases: [
     { title: 'Find', detail: 'lens × topic finders surface candidates' },
-    { title: 'Verify', detail: 'batched — one verdict + bucket/severity/impact per candidate; drop REFUTED' },
-    { title: 'Consolidate', detail: 'cluster survivors by root cause' }
-  ]
+    {
+      title: 'Verify',
+      detail: 'batched — one verdict + bucket/severity/impact per candidate; drop REFUTED',
+    },
+    { title: 'Consolidate', detail: 'cluster survivors by root cause' },
+  ],
 }
 
 // Contract — args passed by the main loop (which has already asked the user
@@ -146,44 +150,44 @@ function verifyBatchSize(candidateCount) {
 const LENS_REGISTRY = [
   {
     key: 'line-scan',
-    text: 'Read every hunk line by line AND the enclosing function (bugs in unchanged lines of a touched function are in scope). For each line ask what input/state/timing/platform makes it wrong: inverted/wrong conditions, off-by-one, null/undefined deref, missing await, falsy-zero checks, wrong-variable copy-paste, errors swallowed in catch, unescaped regex metachars.'
+    text: 'Read every hunk line by line AND the enclosing function (bugs in unchanged lines of a touched function are in scope). For each line ask what input/state/timing/platform makes it wrong: inverted/wrong conditions, off-by-one, null/undefined deref, missing await, falsy-zero checks, wrong-variable copy-paste, errors swallowed in catch, unescaped regex metachars.',
   },
   {
     key: 'removed-behavior',
-    text: 'For every line the diff DELETES or replaces, name the invariant or behavior it enforced, then find where the new code re-establishes it. If you cannot find it, that is a finding: a dropped guard, removed error path, narrowed validation, or a deleted test that covered a real case.'
+    text: 'For every line the diff DELETES or replaces, name the invariant or behavior it enforced, then find where the new code re-establishes it. If you cannot find it, that is a finding: a dropped guard, removed error path, narrowed validation, or a deleted test that covered a real case.',
   },
   {
     key: 'cross-file',
-    text: 'For each function/symbol the diff changes, Grep its callers and check the change does not break them: a new return shape, a new thrown exception, changed nullability, or a timing/ordering dependency a parallel change introduced.'
+    text: 'For each function/symbol the diff changes, Grep its callers and check the change does not break them: a new return shape, a new thrown exception, changed nullability, or a timing/ordering dependency a parallel change introduced.',
   },
   {
     key: 'lang-pitfalls',
-    text: "Scan for the classic footguns of this stack: JS falsy-zero, == coercion, closure-captured loop var, floating-point equality, timezone/DST drift, React hook-after-return / stale closure / missing useEffect cleanup. Flag any instance the diff introduces."
+    text: 'Scan for the classic footguns of this stack: JS falsy-zero, == coercion, closure-captured loop var, floating-point equality, timezone/DST drift, React hook-after-return / stale closure / missing useEffect cleanup. Flag any instance the diff introduces.',
   },
   {
     key: 'security',
-    text: 'Auth/authorization gaps, RLS/permission bypass, injection, unvalidated foreign-system payloads, secret leakage, PII in logs/analytics, missing boundary validation. Trace data flow from user input → sensitive sink; give an exploit scenario. Do NOT flag theoretical/no-impact issues (DOS/resource exhaustion, theoretical races, outdated deps, log spoofing, lack-of-hardening absent a concrete vuln).'
+    text: 'Auth/authorization gaps, RLS/permission bypass, injection, unvalidated foreign-system payloads, secret leakage, PII in logs/analytics, missing boundary validation. Trace data flow from user input → sensitive sink; give an exploit scenario. Do NOT flag theoretical/no-impact issues (DOS/resource exhaustion, theoretical races, outdated deps, log spoofing, lack-of-hardening absent a concrete vuln).',
   },
   {
     key: 'spec-flow',
-    text: 'Does the change match its spec (if one exists under docs/)? Does the user flow make sense end to end — states, transitions, empty/loading/error states, navigation, failure paths?'
+    text: 'Does the change match its spec (if one exists under docs/)? Does the user flow make sense end to end — states, transitions, empty/loading/error states, navigation, failure paths?',
   },
   {
     key: 'style',
-    text: 'Conform to the CLAUDE.md files in scope, especially vertical spacing (blank lines separate logical groups; nested blocks get a blank line before/after when adjacent to siblings; flag both packed AND overly-sparse code). Also guard clauses over if/else, flat control flow, no horizontal alignment, no Oxford comma. Comment QUALITY is out of scope here — the comments lens owns it. LOCAL CONSISTENCY WINS: for a punctuation/spacing/wording preference (e.g. blank-line density, brace style), first sample 2-3 sibling files in the same directory — if the flagged pattern matches the prevailing local style, do NOT flag it (the established codebase convention overrides the stated preference; most CLAUDE.md style rules carry this escape hatch explicitly). QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact line that breaks it AND the local style does not already contradict the rule.'
+    text: 'Conform to the CLAUDE.md files in scope, especially vertical spacing (blank lines separate logical groups; nested blocks get a blank line before/after when adjacent to siblings; flag both packed AND overly-sparse code). Also guard clauses over if/else, flat control flow, no horizontal alignment, no Oxford comma. Comment QUALITY is out of scope here — the comments lens owns it. LOCAL CONSISTENCY WINS: for a punctuation/spacing/wording preference (e.g. blank-line density, brace style), first sample 2-3 sibling files in the same directory — if the flagged pattern matches the prevailing local style, do NOT flag it (the established codebase convention overrides the stated preference; most CLAUDE.md style rules carry this escape hatch explicitly). QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact line that breaks it AND the local style does not already contradict the rule.',
   },
   {
     key: 'dry',
-    text: 'Duplicated logic and reimplemented utilities that already exist (formatters, UI primitives, hooks, shared helpers); copy-paste that should be extracted. Name the existing thing that should have been reused.'
+    text: 'Duplicated logic and reimplemented utilities that already exist (formatters, UI primitives, hooks, shared helpers); copy-paste that should be extracted. Name the existing thing that should have been reused.',
   },
   {
     key: 'dead-code',
-    text: 'Unused vars/imports/exports/branches, unreachable paths, leftover scaffolding, commented-out blocks, props/params nothing consumes.'
+    text: 'Unused vars/imports/exports/branches, unreachable paths, leftover scaffolding, commented-out blocks, props/params nothing consumes.',
   },
   {
     key: 'comments',
-    text: 'Judge the comments the diff ADDS or touches, plus any pre-existing comment the diff made wrong. Flag: restatement of the code ("// increment counter"), change-narration ("// removed X", "// now using Y", "// fixed: ..."), annotation of the obvious, wordy multi-sentence prose where one clause would do, the same idea repeated across several comments, banner/separator markers ("// ===== SECTION ====="), and comments gone stale against the code they sit above. Also flag build-process vocabulary that means nothing to a reader who has not seen the plan docs or issue tracker: phase/milestone codes, ticket refs, audit-item codes, internal slang. Comment WHY, not WHAT: a comment carrying a non-obvious reason, the domain convention behind a name, or a real gotcha is GOOD and must not be flagged. Quote the replacement or say "delete" for every flag. LOCAL CONSISTENCY WINS: sample 2-3 sibling files in the same directory first — if the pattern is the prevailing local style (a file that already uses separator comments throughout, a directory where em-dash clauses are the norm), do NOT flag it. QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact comment line that breaks it.'
-  }
+    text: 'Judge the comments the diff ADDS or touches, plus any pre-existing comment the diff made wrong. Flag: restatement of the code ("// increment counter"), change-narration ("// removed X", "// now using Y", "// fixed: ..."), annotation of the obvious, wordy multi-sentence prose where one clause would do, the same idea repeated across several comments, banner/separator markers ("// ===== SECTION ====="), and comments gone stale against the code they sit above. Also flag build-process vocabulary that means nothing to a reader who has not seen the plan docs or issue tracker: phase/milestone codes, ticket refs, audit-item codes, internal slang. Comment WHY, not WHAT: a comment carrying a non-obvious reason, the domain convention behind a name, or a real gotcha is GOOD and must not be flagged. Quote the replacement or say "delete" for every flag. LOCAL CONSISTENCY WINS: sample 2-3 sibling files in the same directory first — if the pattern is the prevailing local style (a file that already uses separator comments throughout, a directory where em-dash clauses are the norm), do NOT flag it. QUOTE THE RULE: only flag when you can quote the exact CLAUDE.md rule AND the exact comment line that breaks it.',
+  },
 ]
 
 // Fail fast on anything implicit. Refusing to guess is the point: the caller
@@ -194,22 +198,39 @@ if (!DIFF_CMD) problems.push('diffCommand is required — the exact git diff com
 if (!A.model) problems.push("model is required — e.g. 'opus', or 'inherit' for the session model")
 if (!TOPICS.length) problems.push('topics is required — at least one topic slice')
 
+const validLenses = LENS_REGISTRY.map(l => l.key).join(', ')
+
 if (!Array.isArray(LENS_KEYS) || !LENS_KEYS.length) {
-  problems.push(`lenses is required — pick explicitly from: ${LENS_REGISTRY.map(l => l.key).join(', ')}`)
+  problems.push(`lenses is required — pick explicitly from: ${validLenses}`)
 } else {
   const unknown = LENS_KEYS.filter(k => !LENS_REGISTRY.some(l => l.key === k))
-  if (unknown.length) problems.push(`unknown lens key(s): ${unknown.join(', ')} — valid: ${LENS_REGISTRY.map(l => l.key).join(', ')}`)
+
+  if (unknown.length) {
+    problems.push(`unknown lens key(s): ${unknown.join(', ')} — valid: ${validLenses}`)
+  }
 }
 
 const unsplit = TOPICS.filter(t => typeof t.split !== 'boolean')
-if (unsplit.length) problems.push(`every topic needs an explicit split boolean; missing on: ${unsplit.map(t => t.name || '(unnamed)').join(', ')}`)
+
+if (unsplit.length) {
+  const names = unsplit.map(t => t.name || '(unnamed)').join(', ')
+  problems.push(`every topic needs an explicit split boolean; missing on: ${names}`)
+}
 
 if (problems.length) {
   return {
     findings: [],
     clusters: [],
-    stats: { topics: TOPICS.length, finders: 0, candidates: 0, survivors: 0, unverified: 0, finderFailures: 0, clusters: 0 },
-    error: 'Refusing to run with implicit defaults:\n- ' + problems.join('\n- ')
+    stats: {
+      topics: TOPICS.length,
+      finders: 0,
+      candidates: 0,
+      survivors: 0,
+      unverified: 0,
+      finderFailures: 0,
+      clusters: 0,
+    },
+    error: 'Refusing to run with implicit defaults:\n- ' + problems.join('\n- '),
   }
 }
 
@@ -222,9 +243,7 @@ function lensesForTopic(t) {
   return [{ key: 'all', text: ACTIVE_LENSES.map(l => `- ${l.key}: ${l.text}`).join('\n') }]
 }
 
-const FINDER_ITEMS = TOPICS.flatMap(t =>
-  lensesForTopic(t).map(lens => ({ topic: t, lens }))
-)
+const FINDER_ITEMS = TOPICS.flatMap(t => lensesForTopic(t).map(lens => ({ topic: t, lens })))
 
 // Name every stage's model only when they differ, so the common single-model
 // run keeps its short line and a split one is impossible to miss.
@@ -234,7 +253,7 @@ const modelSummary =
     : `models: find ${A.model} / verify ${A.verifyModel || A.model} / consolidate ${A.consolidateModel || A.model}`
 
 log(
-  `${TOPICS.length} topic(s), ${FINDER_ITEMS.length} finder(s), lenses: [${LENS_KEYS.join(', ')}], ${modelSummary} over: ${DIFF_CMD}`
+  `${TOPICS.length} topic(s), ${FINDER_ITEMS.length} finder(s), lenses: [${LENS_KEYS.join(', ')}], ${modelSummary} over: ${DIFF_CMD}`,
 )
 
 const SCOPE_BLOCK =
@@ -255,12 +274,16 @@ const CANDIDATES_SCHEMA = {
           file: { type: 'string' },
           line: { type: 'number' },
           summary: { type: 'string', description: 'one-sentence statement of the problem' },
-          failure_scenario: { type: 'string', description: 'concrete inputs/state → wrong output/crash, OR the concrete cost / exact rule broken for non-runtime findings' },
-          fix: { type: 'string', description: 'suggested fix' }
-        }
-      }
-    }
-  }
+          failure_scenario: {
+            type: 'string',
+            description:
+              'concrete inputs/state → wrong output/crash, OR the concrete cost / exact rule broken for non-runtime findings',
+          },
+          fix: { type: 'string', description: 'suggested fix' },
+        },
+      },
+    },
+  },
 }
 
 // Verify runs in batches, so the schema is an array of verdicts — each carries
@@ -271,20 +294,35 @@ const VERDICT_ITEM = {
   properties: {
     index: { type: 'number', description: 'the [n] index of the candidate this verdict is for' },
     verdict: { enum: ['CONFIRMED', 'PLAUSIBLE', 'REFUTED'] },
-    bucket: { enum: ['A', 'B', 'C', 'D', 'E', 'P'], description: 'what the human has to DO about it: A=fix is fully determined by the code; B=real issue, fix needs a decision; C=real but only fires under narrow conditions; D=works but deviates from spec/convention (judgement call); E=none of A-D fit; P=defective code is untouched by this diff (pre-existing)' },
-    severity: { enum: ['high', 'medium', 'low', 'n/a'], description: "cost if left unfixed. 'n/a' for bucket A only. For bucket C this is severity IF the narrow trigger fires" },
-    impact: { enum: ['cross-tenant', 'same-tenant', 'correctness', 'style'], description: 'blast radius class of the failure' },
-    why_not_abcd: { type: 'string', description: 'REQUIRED when bucket is E: which bucket it was closest to, and the specific thing that disqualified it' },
-    evidence: { type: 'string', description: 'the line(s) that confirm or disprove it' }
-  }
+    bucket: {
+      enum: ['A', 'B', 'C', 'D', 'E', 'P'],
+      description:
+        'what the human has to DO about it: A=fix is fully determined by the code; B=real issue, fix needs a decision; C=real but only fires under narrow conditions; D=works but deviates from spec/convention (judgement call); E=none of A-D fit; P=defective code is untouched by this diff (pre-existing)',
+    },
+    severity: {
+      enum: ['high', 'medium', 'low', 'n/a'],
+      description:
+        "cost if left unfixed. 'n/a' for bucket A only. For bucket C this is severity IF the narrow trigger fires",
+    },
+    impact: {
+      enum: ['cross-tenant', 'same-tenant', 'correctness', 'style'],
+      description: 'blast radius class of the failure',
+    },
+    why_not_abcd: {
+      type: 'string',
+      description:
+        'REQUIRED when bucket is E: which bucket it was closest to, and the specific thing that disqualified it',
+    },
+    evidence: { type: 'string', description: 'the line(s) that confirm or disprove it' },
+  },
 }
 
 const VERDICT_BATCH_SCHEMA = {
   type: 'object',
   required: ['verdicts'],
   properties: {
-    verdicts: { type: 'array', items: VERDICT_ITEM }
-  }
+    verdicts: { type: 'array', items: VERDICT_ITEM },
+  },
 }
 
 const CLUSTER_SCHEMA = {
@@ -298,16 +336,31 @@ const CLUSTER_SCHEMA = {
         required: ['title', 'bucket', 'severity', 'impact', 'members'],
         properties: {
           title: { type: 'string', description: 'short name for the root-cause issue' },
-          rootCause: { type: 'string', description: 'the single underlying cause the members share' },
-          bucket: { enum: ['A', 'B', 'C', 'D', 'E', 'P'], description: 'the most attention-demanding bucket among the members, in the order B > D > E > C > A. P members are never mixed with non-P' },
-          severity: { enum: ['high', 'medium', 'low', 'n/a'], description: "highest severity among the members; 'n/a' only when the whole cluster is bucket A" },
+          rootCause: {
+            type: 'string',
+            description: 'the single underlying cause the members share',
+          },
+          bucket: {
+            enum: ['A', 'B', 'C', 'D', 'E', 'P'],
+            description:
+              'the most attention-demanding bucket among the members, in the order B > D > E > C > A. P members are never mixed with non-P',
+          },
+          severity: {
+            enum: ['high', 'medium', 'low', 'n/a'],
+            description:
+              "highest severity among the members; 'n/a' only when the whole cluster is bucket A",
+          },
           impact: { enum: ['cross-tenant', 'same-tenant', 'correctness', 'style'] },
           fix: { type: 'string', description: 'the one fix that resolves all members' },
-          members: { type: 'array', items: { type: 'number' }, description: 'indexes into the findings list that share this root cause' }
-        }
-      }
-    }
-  }
+          members: {
+            type: 'array',
+            items: { type: 'number' },
+            description: 'indexes into the findings list that share this root cause',
+          },
+        },
+      },
+    },
+  },
 }
 
 function findPrompt(item) {
@@ -323,7 +376,10 @@ function findPrompt(item) {
 
 function verifyBatchPrompt(batch) {
   const list = batch
-    .map((c, i) => `[${i}] ${c.file}${c.line ? ':' + c.line : ''} — ${c.summary}\n    Claimed failure: ${c.failure_scenario}`)
+    .map(
+      (c, i) =>
+        `[${i}] ${c.file}${c.line ? ':' + c.line : ''} — ${c.summary}\n    Claimed failure: ${c.failure_scenario}`,
+    )
     .join('\n\n')
 
   return (
@@ -358,7 +414,15 @@ function chunk(items, size) {
 }
 
 function unverifiedCandidate(c, reason) {
-  return { ...c, verdict: 'PLAUSIBLE', bucket: 'unknown', severity: 'unknown', impact: 'unknown', unverified: true, evidence: reason }
+  return {
+    ...c,
+    verdict: 'PLAUSIBLE',
+    bucket: 'unknown',
+    severity: 'unknown',
+    impact: 'unknown',
+    unverified: true,
+    evidence: reason,
+  }
 }
 
 // Map a batch's returned verdicts back onto its candidates by [index]. A missing
@@ -368,7 +432,9 @@ function applyVerdicts(batch, result) {
   const verdicts = result && Array.isArray(result.verdicts) ? result.verdicts : null
 
   if (!verdicts) {
-    return batch.map(c => unverifiedCandidate(c, 'verification did not complete (agent error or session limit)'))
+    return batch.map(c =>
+      unverifiedCandidate(c, 'verification did not complete (agent error or session limit)'),
+    )
   }
 
   const byIndex = new Map(verdicts.filter(v => Number.isInteger(v.index)).map(v => [v.index, v]))
@@ -383,7 +449,7 @@ function applyVerdicts(batch, result) {
       severity: v.severity,
       impact: v.impact,
       evidence: v.evidence,
-      ...(v.why_not_abcd ? { why_not_abcd: v.why_not_abcd } : {})
+      ...(v.why_not_abcd ? { why_not_abcd: v.why_not_abcd } : {}),
     }
   })
 }
@@ -404,7 +470,10 @@ const BUCKET_SEED = { A: 0, B: 0, C: 0, D: 0, E: 0, P: 0 }
 
 function consolidatePrompt(survivors) {
   const list = survivors
-    .map((s, i) => `[${i}] (${s.verdict}/${s.bucket}/${s.severity}/${s.impact}) ${s.file}${s.line ? ':' + s.line : ''} — ${s.summary}`)
+    .map(
+      (s, i) =>
+        `[${i}] (${s.verdict}/${s.bucket}/${s.severity}/${s.impact}) ${s.file}${s.line ? ':' + s.line : ''} — ${s.summary}`,
+    )
     .join('\n')
   return (
     `These are the verified survivors of a code review. Many describe the SAME underlying problem found from different angles or at adjacent lines (e.g. one cross-tenant hole flagged by 5 lenses).\n\n` +
@@ -417,20 +486,28 @@ function consolidatePrompt(survivors) {
 
 phase('Find')
 const found = await parallel(
-  FINDER_ITEMS.map(item => () =>
-    agent(findPrompt(item), {
-      label: `find:${item.topic.name}:${item.lens.key}`,
-      phase: 'Find',
-      model: MODEL,
-      schema: CANDIDATES_SCHEMA
-    })
-      .then(r =>
-        r && r.candidates
-          ? { failed: false, items: r.candidates.map(c => ({ ...c, topic: item.topic.name, lens: item.lens.key })) }
-          : { failed: true, items: [] }
-      )
-      .catch(() => ({ failed: true, items: [] }))
-  )
+  FINDER_ITEMS.map(
+    item => () =>
+      agent(findPrompt(item), {
+        label: `find:${item.topic.name}:${item.lens.key}`,
+        phase: 'Find',
+        model: MODEL,
+        schema: CANDIDATES_SCHEMA,
+      })
+        .then(r =>
+          r && r.candidates
+            ? {
+                failed: false,
+                items: r.candidates.map(c => ({
+                  ...c,
+                  topic: item.topic.name,
+                  lens: item.lens.key,
+                })),
+              }
+            : { failed: true, items: [] },
+        )
+        .catch(() => ({ failed: true, items: [] })),
+  ),
 )
 
 const safeFound = found.map(f => f || { failed: true, items: [] })
@@ -459,25 +536,30 @@ for (const c of rawCandidates) {
   }
 }
 const candidates = Array.from(byKey.values())
-log(`${rawCandidates.length} candidates → ${candidates.length} after dedup (${finderFailures} finder(s) failed)`)
+log(
+  `${rawCandidates.length} candidates → ${candidates.length} after dedup (${finderFailures} finder(s) failed)`,
+)
 
 phase('Verify')
 const batchSize = verifyBatchSize(candidates.length)
 const verifyBatches = chunk(candidates, batchSize)
-log(`verify: ${candidates.length} candidate(s) across ${verifyBatches.length} agent(s) (≤${batchSize}/agent)`)
+log(
+  `verify: ${candidates.length} candidate(s) across ${verifyBatches.length} agent(s) (≤${batchSize}/agent)`,
+)
 const verified = (
   await parallel(
-    verifyBatches.map(batch => () =>
-      agent(verifyBatchPrompt(batch), {
-        label: `verify:${batch.length}×(${batch[0].file})`,
-        phase: 'Verify',
-        model: VERIFY_MODEL,
-        effort: JUDGMENT_EFFORT,
-        schema: VERDICT_BATCH_SCHEMA
-      })
-        .then(res => applyVerdicts(batch, res))
-        .catch(() => batch.map(c => unverifiedCandidate(c, 'verification threw')))
-    )
+    verifyBatches.map(
+      batch => () =>
+        agent(verifyBatchPrompt(batch), {
+          label: `verify:${batch.length}×(${batch[0].file})`,
+          phase: 'Verify',
+          model: VERIFY_MODEL,
+          effort: JUDGMENT_EFFORT,
+          schema: VERDICT_BATCH_SCHEMA,
+        })
+          .then(res => applyVerdicts(batch, res))
+          .catch(() => batch.map(c => unverifiedCandidate(c, 'verification threw'))),
+    ),
   )
 ).flat()
 
@@ -492,7 +574,7 @@ log(`${survivors.length} survivor(s), ${unverified} unverified`)
 // echoing them in both `findings` AND every cluster's `occurrences` bloated the
 // result past the tool-result cap. Return only what the triager needs to locate
 // and rank each finding; read journal.jsonl for the full reasoning.
-const compact = (f) => ({
+const compact = f => ({
   file: f.file,
   line: f.line,
   summary: f.summary,
@@ -502,7 +584,7 @@ const compact = (f) => ({
   severity: f.severity,
   impact: f.impact,
   ...(f.why_not_abcd ? { why_not_abcd: f.why_not_abcd } : {}),
-  ...(f.unverified ? { unverified: true } : {})
+  ...(f.unverified ? { unverified: true } : {}),
 })
 
 // Cluster survivors by root cause so the report leads with distinct issues, not
@@ -516,14 +598,16 @@ if (survivors.length) {
     phase: 'Consolidate',
     model: CONSOLIDATE_MODEL,
     effort: JUDGMENT_EFFORT,
-    schema: CLUSTER_SCHEMA
+    schema: CLUSTER_SCHEMA,
   }).catch(() => null)
 
   const raw = res && res.clusters ? res.clusters : []
   const referenced = new Set()
   clusters = raw
     .map(cl => {
-      const members = (cl.members || []).filter(i => Number.isInteger(i) && i >= 0 && i < survivors.length)
+      const members = (cl.members || []).filter(
+        i => Number.isInteger(i) && i >= 0 && i < survivors.length,
+      )
       members.forEach(i => referenced.add(i))
       return {
         title: cl.title,
@@ -532,7 +616,7 @@ if (survivors.length) {
         severity: cl.severity || 'unknown',
         impact: cl.impact || 'unknown',
         fix: cl.fix || '',
-        occurrences: members.map(i => compact(survivors[i]))
+        occurrences: members.map(i => compact(survivors[i])),
       }
     })
     .filter(c => c.occurrences.length)
@@ -546,7 +630,7 @@ if (survivors.length) {
       severity: s.severity || 'unknown',
       impact: s.impact || 'unknown',
       fix: s.fix || '',
-      occurrences: [compact(s)]
+      occurrences: [compact(s)],
     })
   })
   log(`${survivors.length} survivor(s) → ${clusters.length} root-cause cluster(s)`)
@@ -567,6 +651,6 @@ return {
     clusters: clusters.length,
     byBucket: histogram(clusters, 'bucket', BUCKET_SEED),
     bySeverity: histogram(clusters, 'severity', SEVERITY_SEED),
-    lenses: LENS_KEYS
-  }
+    lenses: LENS_KEYS,
+  },
 }
