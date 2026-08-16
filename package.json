@@ -1,0 +1,11 @@
+{
+  "name": "claude-settings",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}
