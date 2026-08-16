@@ -1,0 +1,12 @@
+# Scoped the same way .gitignore is: ignore everything, then add back only the
+# hand-written sources. This keeps `prettier --write .` away from session
+# transcripts, caches, downloads and installed plugin code.
+/*
+
+!/CLAUDE.md
+!/scripts/
+!/skills/
+!/commands/
+
+# settings.json stays out on purpose: Claude Code rewrites it with its own JSON
+# layout, so formatting it would only trade edits back and forth with the CLI.

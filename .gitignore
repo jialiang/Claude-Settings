@@ -10,6 +10,10 @@
 !/.env.example
 !/CLAUDE.md
 !/settings.json
+!/.prettierrc
+!/.prettierignore
+!/package.json
+!/package-lock.json
 !/scripts/
 !/skills/
 !/commands/
