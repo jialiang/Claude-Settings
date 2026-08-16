@@ -72,7 +72,7 @@ function normaliseWindow(window) {
   const resetsAt = Date.parse(window.resets_at)
   return {
     used_percentage: Number(window.utilization),
-    resets_at: Number.isNaN(resetsAt) ? null : Math.floor(resetsAt / 1000)
+    resets_at: Number.isNaN(resetsAt) ? null : Math.floor(resetsAt / 1000),
   }
 }
 
@@ -83,14 +83,14 @@ async function fetchUsage() {
   try {
     const response = await fetch(usageEndpoint, {
       signal: AbortSignal.timeout(pollTimeoutMs),
-      headers: { Authorization: `Bearer ${token}`, 'anthropic-beta': 'oauth-2025-04-20' }
+      headers: { Authorization: `Bearer ${token}`, 'anthropic-beta': 'oauth-2025-04-20' },
     })
     if (!response.ok) return null
 
     const usage = await response.json()
     return {
       five_hour: normaliseWindow(usage.five_hour),
-      seven_day: normaliseWindow(usage.seven_day)
+      seven_day: normaliseWindow(usage.seven_day),
     }
   } catch {
     return null
@@ -125,11 +125,14 @@ function pacePercent(resetsAt, windowSeconds) {
   return Math.min(100, Math.max(0, Math.floor((elapsed / windowSeconds) * 100)))
 }
 
+// Renders one window as a leading ` | ...` segment, or nothing at all while the
+// figure is missing.
 function formatWindow(label, window, windowSeconds) {
-  if (window.resets_at == null) return `${label}: ${pct(window)}%`
+  if (pct(window) < 0) return ''
+  if (window.resets_at == null) return ` | ${label}: ${pct(window)}%`
 
   const pace = pacePercent(window.resets_at, windowSeconds)
-  return `${label}: ${pct(window)}%/${pace}% (${formatTimeLeft(window.resets_at)})`
+  return ` | ${label}: ${pct(window)}%/${pace}% (${formatTimeLeft(window.resets_at)})`
 }
 
 const data = parseJson(readStdin())
@@ -161,14 +164,17 @@ if (nowEpoch() - fetchedAt >= pollIntervalSeconds) {
   }
 }
 
-writeFileSync(stateFile, JSON.stringify({ ...windows, captured_at: capturedAt, fetched_at: fetchedAt }))
+writeFileSync(
+  stateFile,
+  JSON.stringify({ ...windows, captured_at: capturedAt, fetched_at: fetchedAt }),
+)
 
 const model = data?.model?.display_name || 'Claude'
 const dir = basename(data?.workspace?.current_dir || data?.cwd || '~')
 
-let usage = ''
-if (pct(windows.five_hour) >= 0) usage += ` | ${formatWindow('5h', windows.five_hour, fiveHourSeconds)}`
-if (pct(windows.seven_day) >= 0) usage += ` | ${formatWindow('7d', windows.seven_day, sevenDaySeconds)}`
+const usage =
+  formatWindow('5h', windows.five_hour, fiveHourSeconds) +
+  formatWindow('7d', windows.seven_day, sevenDaySeconds)
 
 // Live context usage: only present once the session has made an API call, and
 // absent again after /compact until the next one.

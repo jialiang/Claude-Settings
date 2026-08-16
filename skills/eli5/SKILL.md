@@ -4,7 +4,7 @@ description: >-
   Restate my previous message as a plain-language wrap-up for a technically
   inclined project manager: outcome first, jargon dropped, no new work.
   Manual only, via /eli5.
-argument-hint: "[optional: part to focus on]"
+argument-hint: '[optional: part to focus on]'
 disable-model-invocation: true
 ---
 

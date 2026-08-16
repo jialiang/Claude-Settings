@@ -76,16 +76,18 @@ const r7 = state.seven_day?.resets_at ?? 0
 let msg = `Rate-limit status: 5-hour window ${p5}% used (resets in ${formatReset(r5)}), weekly limit ${p7}% used (resets in ${formatReset(r7)}).`
 
 if (p5 >= 90 || p7 >= 95) {
-  msg += ' Usage is nearly exhausted. Checkpoint NOW: commit or save all progress, write a summary of remaining steps to a file so work can resume after the reset, then inform the user instead of starting anything new.'
+  msg +=
+    ' Usage is nearly exhausted. Checkpoint NOW: commit or save all progress, write a summary of remaining steps to a file so work can resume after the reset, then inform the user instead of starting anything new.'
 } else if (p5 >= 80 || p7 >= 85) {
-  msg += ' Approaching the limit: prefer finishing and saving current work over starting new large subtasks, and checkpoint progress at the next natural boundary.'
+  msg +=
+    ' Approaching the limit: prefer finishing and saving current work over starting new large subtasks, and checkpoint progress at the next natural boundary.'
 }
 
 const payload = {
   hookSpecificOutput: {
     hookEventName: event,
-    additionalContext: msg
-  }
+    additionalContext: msg,
+  },
 }
 
 process.stdout.write(JSON.stringify(payload))
