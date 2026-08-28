@@ -56,7 +56,7 @@
     "refreshInterval": 30
   },
   "effortLevel": "xhigh",
-  "autoUpdatesChannel": "latest",
+  "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
