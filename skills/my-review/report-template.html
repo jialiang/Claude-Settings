@@ -1,0 +1,740 @@
+<title>Review Scope Here</title>
+
+<!--
+  my-review report template. Fill order and rules: report-template.md
+  Copy this file to the scratchpad, fill it, publish with the Artifact tool.
+  Every block marked EXAMPLE is a copy-me sample: duplicate it per entry, then
+  delete the sample. Delete whole <section>s for buckets with no entries, and
+  delete their tiles from the ledger.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
+/>
+
+<style>
+  :root {
+    --paper: #f0f1ec;
+    --surface: #f8f8f5;
+    --ink: #171a1c;
+    --muted: #5c6570;
+    --line: #d5d8d0;
+    --line-strong: #b9bdb3;
+    --accent: #2c5d5a;
+    --accent-bg: #e1e9e5;
+
+    --high: #a63d2a;
+    --high-bg: #f2ded8;
+    --medium: #8b6716;
+    --medium-bg: #f0e6d0;
+    --low: #5c6570;
+    --low-bg: #e5e7e1;
+    --flag: #6b4f8a;
+    --flag-bg: #e9e3f0;
+
+    --font-ui: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+    --font-prose: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --paper: #131618;
+      --surface: #1a1e20;
+      --ink: #e6e7e2;
+      --muted: #99a0a6;
+      --line: #2b3134;
+      --line-strong: #3c4348;
+      --accent: #79b0a8;
+      --accent-bg: #1d2a29;
+
+      --high: #e58366;
+      --high-bg: #37211c;
+      --medium: #d7a64b;
+      --medium-bg: #322817;
+      --low: #99a0a6;
+      --low-bg: #242829;
+      --flag: #b79ad4;
+      --flag-bg: #262032;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --paper: #131618;
+    --surface: #1a1e20;
+    --ink: #e6e7e2;
+    --muted: #99a0a6;
+    --line: #2b3134;
+    --line-strong: #3c4348;
+    --accent: #79b0a8;
+    --accent-bg: #1d2a29;
+
+    --high: #e58366;
+    --high-bg: #37211c;
+    --medium: #d7a64b;
+    --medium-bg: #322817;
+    --low: #99a0a6;
+    --low-bg: #242829;
+    --flag: #b79ad4;
+    --flag-bg: #262032;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 3.5rem 1.5rem 6rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-prose);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 60rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  a {
+    color: var(--accent);
+  }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1 {
+    margin: 0.6rem 0 0;
+    font-family: var(--font-ui);
+    font-size: clamp(1.9rem, 1.4rem + 2vw, 2.7rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  .verdict-line {
+    margin: 1rem 0 0;
+    max-width: 62ch;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+
+  /* Run facts: scope, diff command, engine stats. */
+  .runmeta {
+    margin: 1.75rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.9rem 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .runmeta div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .runmeta dt {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .runmeta dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  /* Bucket ledger — tiles in attention order, each an anchor to its section. */
+  .ledger {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+  }
+  .tile:hover {
+    background: var(--accent-bg);
+  }
+  .tile .letter {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .tile .count {
+    font-family: var(--font-ui);
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .tile .what {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-wrap: balance;
+  }
+  .tile[data-empty='true'] {
+    opacity: 0.45;
+  }
+
+  /* Coverage banner — include ONLY when a gap exists. */
+  .coverage {
+    padding: 1rem 1.2rem;
+    background: var(--high-bg);
+    border-left: 3px solid var(--high);
+    font-size: 0.95rem;
+  }
+  .coverage strong {
+    font-family: var(--font-ui);
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--line-strong);
+  }
+  .section-head h2 {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-head .badge {
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .section-head .tally {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .section-note {
+    margin: -0.5rem 0 0;
+    max-width: 68ch;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  .finding {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .finding:first-of-type {
+    padding-top: 0;
+    border-top: none;
+  }
+  .finding h3 {
+    margin: 0;
+    max-width: 62ch;
+    font-family: var(--font-ui);
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .chip {
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .chip[data-sev='high'] {
+    background: var(--high-bg);
+    color: var(--high);
+  }
+  .chip[data-sev='medium'] {
+    background: var(--medium-bg);
+    color: var(--medium);
+  }
+  .chip[data-sev='low'] {
+    background: var(--low-bg);
+    color: var(--low);
+  }
+  .chip[data-kind='impact'] {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line-strong);
+  }
+  .chip[data-kind='flag'] {
+    background: var(--flag-bg);
+    color: var(--flag);
+  }
+
+  .where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .where span:first-child {
+    color: var(--ink);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .field > .label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field > p {
+    margin: 0;
+    max-width: 68ch;
+  }
+  code {
+    padding: 0.05em 0.3em;
+    background: var(--low-bg);
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  /* Bucket A roll-up: scanned as a batch, never entry by entry. */
+  .scroll {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  th,
+  td {
+    padding: 0.6rem 1rem 0.6rem 0;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  td.loc {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  footer {
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  footer p {
+    margin: 0 0 0.5rem;
+    max-width: 68ch;
+  }
+
+  @media (max-width: 40rem) {
+    body {
+      padding: 2.5rem 1.1rem 4rem;
+    }
+    td.loc {
+      white-space: normal;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <p class="eyebrow">Code review</p>
+    <!-- H1: name the scope, not the document. "Escalations API", not "Review Report". -->
+    <h1>Escalations API and portal config</h1>
+
+    <!-- One or two sentences: the headline judgement. What must be decided, what is safe. -->
+    <p class="verdict-line">
+      Two decisions block this branch: an unscoped studio lookup on the escalation route and a
+      config write that silently drops unknown keys. The remaining nine findings are mechanical.
+    </p>
+
+    <dl class="runmeta">
+      <div>
+        <dt>Scope</dt>
+        <dd>feat/escalations vs main</dd>
+      </div>
+      <div>
+        <dt>Diff</dt>
+        <dd>git diff main...feat/escalations</dd>
+      </div>
+      <div>
+        <dt>Lenses</dt>
+        <dd>line-scan, removed-behavior, cross-file, lang-pitfalls, security</dd>
+      </div>
+      <div>
+        <dt>Engine</dt>
+        <dd>18 finders &middot; 47 candidates &middot; 13 survivors &middot; 11 clusters</dd>
+      </div>
+    </dl>
+  </header>
+
+  <!-- Ledger tiles in attention order. Drop tiles whose bucket has no entries,
+       or keep them with data-empty="true" to show the bucket was considered. -->
+  <nav class="ledger" aria-label="Findings by action bucket">
+    <a class="tile" href="#bucket-b">
+      <span class="letter">B</span>
+      <span class="count">2</span>
+      <span class="what">Needs a decision</span>
+    </a>
+    <a class="tile" href="#bucket-d">
+      <span class="letter">D</span>
+      <span class="count">1</span>
+      <span class="what">Judgement call</span>
+    </a>
+    <a class="tile" href="#bucket-e" data-empty="true">
+      <span class="letter">E</span>
+      <span class="count">0</span>
+      <span class="what">Unclassified</span>
+    </a>
+    <a class="tile" href="#bucket-c">
+      <span class="letter">C</span>
+      <span class="count">2</span>
+      <span class="what">Narrow trigger</span>
+    </a>
+    <a class="tile" href="#bucket-a">
+      <span class="letter">A</span>
+      <span class="count">5</span>
+      <span class="what">Batch fix</span>
+    </a>
+    <a class="tile" href="#bucket-p">
+      <span class="letter">P</span>
+      <span class="count">1</span>
+      <span class="what">Pre-existing</span>
+    </a>
+  </nav>
+
+  <!-- COVERAGE — delete entirely when finderFailures and unverified are both 0. -->
+  <p class="coverage">
+    <strong>Coverage gap.</strong> 2 of 18 finders died on the session limit (<code
+      >cross-file</code
+    >
+    and <code>security</code> over the portal config slice), and 3 candidates went unverified. Those
+    slices are under-reviewed: treat a clean result there as unproven.
+  </p>
+
+  <!-- ============ B — decisions ============ -->
+  <section id="bucket-b">
+    <div class="section-head">
+      <span class="badge">B</span>
+      <h2>Clearly an issue, the fix needs a decision</h2>
+      <span class="tally">2 &middot; high to low</span>
+    </div>
+
+    <!-- EXAMPLE FINDING — duplicate per cluster, then delete this one. -->
+    <article class="finding">
+      <div class="chips">
+        <span class="chip" data-sev="high">high</span>
+        <span class="chip" data-kind="impact">cross-tenant</span>
+        <!-- Include only when the engine returned PLAUSIBLE or unverified: -->
+        <span class="chip" data-kind="flag">plausible</span>
+      </div>
+
+      <h3>Escalation lookup trusts the client-supplied studio id</h3>
+
+      <p class="where">
+        <span>app/api/escalation/route.ts:64</span>
+        <span>+2 more: route.ts:98, service.ts:31</span>
+      </p>
+
+      <div class="field">
+        <span class="label">Problem</span>
+        <p>
+          The handler reads <code>studioId</code> from the request body and passes it straight to
+          the query. A member of studio A can post studio B's id and read B's escalation thread,
+          because the row filter never re-derives the id from the session.
+        </p>
+      </div>
+
+      <!-- Two reasonable fixes is what makes this a B. With only one fix on the
+           table the cluster belongs in A or D, not here. -->
+      <div class="field">
+        <span class="label">Decision</span>
+        <p>
+          Either derive <code>studioId</code> from the session and ignore the body field (breaks the
+          admin impersonation path that currently relies on it), or keep the field and gate it
+          behind the existing admin claim check.
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ D — judgement calls ============ -->
+  <section id="bucket-d">
+    <div class="section-head">
+      <span class="badge">D</span>
+      <h2>Deviates from spec or convention, but defensible</h2>
+      <span class="tally">1</span>
+    </div>
+    <p class="section-note">
+      The code works. Each entry is a choice for you, not a defect: both sides are stated.
+    </p>
+
+    <!-- EXAMPLE FINDING — D entries always carry both sides. -->
+    <article class="finding">
+      <div class="chips">
+        <span class="chip" data-sev="medium">medium</span>
+        <span class="chip" data-kind="impact">correctness</span>
+      </div>
+
+      <h3>Config writes merge instead of replacing, unlike every sibling route</h3>
+
+      <p class="where"><span>app/portal/config/actions.ts:112</span></p>
+
+      <div class="field">
+        <span class="label">Deviation</span>
+        <p>
+          <code>docs/portal-config.md</code> specifies a full replace, and the three sibling routes
+          replace. This one shallow-merges, so a removed key survives.
+        </p>
+      </div>
+
+      <div class="field">
+        <span class="label">Case for the current behaviour</span>
+        <p>
+          Merging keeps older clients working: they post partial payloads and would otherwise wipe
+          fields they never knew about. The spec predates those clients.
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ E — unclassified ============ -->
+  <section id="bucket-e">
+    <div class="section-head">
+      <span class="badge">E</span>
+      <h2>None of A&ndash;D fit</h2>
+      <span class="tally">0</span>
+    </div>
+
+    <!-- EXAMPLE FINDING — every E states why it is not A-D. Delete the whole
+         section when E is empty. -->
+    <article class="finding">
+      <div class="chips">
+        <span class="chip" data-sev="low">low</span>
+        <span class="chip" data-kind="impact">style</span>
+      </div>
+
+      <h3>Sample E entry</h3>
+
+      <p class="where"><span>path/to/file.ts:1</span></p>
+
+      <div class="field">
+        <span class="label">Observation</span>
+        <p>What was found.</p>
+      </div>
+
+      <div class="field">
+        <span class="label">Why not A&ndash;D</span>
+        <p>Closest bucket, and the specific thing that disqualified it.</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ C — narrow trigger ============ -->
+  <section id="bucket-c">
+    <div class="section-head">
+      <span class="badge">C</span>
+      <h2>Real, but only fires under narrow conditions</h2>
+      <span class="tally">2 &middot; 1 high</span>
+    </div>
+    <p class="section-note">
+      Severity is the cost if the trigger fires, not discounted by how unlikely it is.
+    </p>
+
+    <!-- EXAMPLE FINDING — C entries stay compact: trigger, then cost. -->
+    <article class="finding">
+      <div class="chips">
+        <span class="chip" data-sev="high">high</span>
+        <span class="chip" data-kind="impact">same-tenant</span>
+      </div>
+
+      <h3>Concurrent config saves can interleave and drop a field</h3>
+
+      <p class="where"><span>app/portal/config/actions.ts:130</span></p>
+
+      <div class="field">
+        <span class="label">Trigger</span>
+        <p>Two editors save within the read-modify-write window (~200&nbsp;ms).</p>
+      </div>
+
+      <div class="field">
+        <span class="label">Cost if it fires</span>
+        <p>
+          The later write silently reverts the earlier one, with no version conflict surfaced.
+          Recovering means re-entering the config by hand.
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ A — batch fix ============ -->
+  <section id="bucket-a">
+    <div class="section-head">
+      <span class="badge">A</span>
+      <h2>Fix is fully determined by the code</h2>
+      <span class="tally">5</span>
+    </div>
+    <p class="section-note">
+      No design choice in any of these. Spot-check the list and approve it as one batch.
+    </p>
+
+    <!-- EXAMPLE ROLL-UP — one row per cluster, no severity, no expansion. -->
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Location</th>
+            <th scope="col">What</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="loc">app/api/escalation/route.ts:22</td>
+            <td>Unused <code>NextRequest</code> import left after the handler rewrite.</td>
+          </tr>
+          <tr>
+            <td class="loc">lib/escalation/service.ts:48</td>
+            <td>
+              <code>await</code> missing on <code>markSeen()</code>, so errors escape the try block.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ P — pre-existing ============ -->
+  <section id="bucket-p">
+    <div class="section-head">
+      <span class="badge">P</span>
+      <h2>Pre-existing, out of scope for this branch</h2>
+      <span class="tally">1</span>
+    </div>
+    <p class="section-note">
+      Untouched by this diff. Fixing it here would mix unrelated changes into the branch, so it is
+      listed as separate work.
+    </p>
+
+    <!-- EXAMPLE FINDING — P entries say plainly that they predate the branch. -->
+    <article class="finding">
+      <div class="chips">
+        <span class="chip" data-sev="medium">medium</span>
+        <span class="chip" data-kind="impact">correctness</span>
+      </div>
+
+      <h3>Escalation status enum has no exhaustiveness check</h3>
+
+      <p class="where"><span>lib/escalation/types.ts:14</span></p>
+
+      <div class="field">
+        <span class="label">Problem</span>
+        <p>
+          The switch falls through to <code>open</code> for any status added later. The line
+          predates this branch, which only touched the function around it.
+        </p>
+      </div>
+
+      <div class="field">
+        <span class="label">Fix, as separate work</span>
+        <p>Add a <code>never</code> default arm so a new status fails the build.</p>
+      </div>
+    </article>
+  </section>
+
+  <footer>
+    <p>
+      Report only &mdash; nothing here has been applied. Say the word and the A batch goes in as one
+      change; B and D need your call first.
+    </p>
+    <p>
+      Verdicts come from the review engine's verify pass. Anything marked
+      <em>plausible</em> means the claim itself is uncertain, distinct from a C, where the claim is
+      solid and only the trigger is narrow.
+    </p>
+  </footer>
+</div>
