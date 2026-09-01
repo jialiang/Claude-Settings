@@ -34,6 +34,18 @@ to learn whether anything urgent was found.
 7. Publish with `favicon: "🧾"`, and a one-sentence `description` naming the scope and the
    headline count. Keep both stable when redeploying the same review.
 
+## Entry handles
+
+Every entry shows a handle — bucket letter plus its position in that section (`B1`, `C2`,
+`A5`) — so the user can answer "fix B2 and A5" instead of quoting titles back. A CSS
+counter draws them, so **never type a handle into an entry**: duplicate, delete and
+re-sort blocks freely and the numbering follows. In the A table the handle cell is an
+empty `<th scope="row" class="handle">` that the counter fills.
+
+Cite handles wherever the report points at an entry — the `verdict-line`, the coverage
+banner, one entry referring to another — and use the same handles in the chat summary, so
+one set of names covers both.
+
 ## Per-bucket rules
 
 The bucket semantics live in `SKILL.md` step 5; this is only what each slot takes.
@@ -44,7 +56,7 @@ The bucket semantics live in `SKILL.md` step 5; this is only what each slot take
 | D      | Full entry    | Deviation, then **Case for the current behaviour** — both sides, always |
 | E      | Full entry    | Observation, then **Why not A–D** — closest bucket and the disqualifier |
 | C      | Compact entry | Trigger, then **Cost if it fires**, undiscounted by likelihood          |
-| A      | Roll-up table | Location + one clause. No severity chip, no expansion                   |
+| A      | Roll-up table | Empty `th.handle` cell, location + one clause. No severity chip         |
 | P      | Full entry    | Problem (state that it predates the branch), then fix as separate work  |
 
 The `Decision` field lists the competing fixes and what each costs. That list is what makes

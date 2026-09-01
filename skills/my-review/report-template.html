@@ -6,6 +6,9 @@
   Every block marked EXAMPLE is a copy-me sample: duplicate it per entry, then
   delete the sample. Delete whole <section>s for buckets with no entries, and
   delete their tiles from the ledger.
+
+  Entry handles (B1, C2, A5) come from a CSS counter, so they follow whatever
+  order the entries end up in. Never write one into an entry by hand.
 -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -229,6 +232,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    counter-reset: entry;
   }
 
   .section-head {
@@ -264,6 +268,45 @@
     max-width: 68ch;
     font-size: 0.92rem;
     color: var(--muted);
+  }
+
+  /* Entry handles (B1, C2, A5): the short name the reader answers with.
+     Drawn from a counter that restarts in each section, so duplicating,
+     deleting or re-sorting entries renumbers them on its own. Never type a
+     handle into an entry. The counter resets on `section`, above. */
+  .finding,
+  #bucket-a tbody tr {
+    counter-increment: entry;
+  }
+  #bucket-b {
+    --bucket: 'B';
+  }
+  #bucket-d {
+    --bucket: 'D';
+  }
+  #bucket-e {
+    --bucket: 'E';
+  }
+  #bucket-c {
+    --bucket: 'C';
+  }
+  #bucket-a {
+    --bucket: 'A';
+  }
+  #bucket-p {
+    --bucket: 'P';
+  }
+
+  .finding h3::before,
+  th.handle::before {
+    content: var(--bucket, '#') counter(entry);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .finding h3::before {
+    margin-right: 0.55rem;
   }
 
   .finding {
@@ -392,6 +435,13 @@
     font-size: 0.78rem;
     white-space: nowrap;
   }
+  /* Row handle cell: empty in the markup, filled by the counter above. */
+  th.handle {
+    width: 1%;
+    font-size: 0.78rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 
   footer {
     padding-top: 1.5rem;
@@ -429,8 +479,9 @@
 
     <!-- One or two sentences: the headline judgement. What must be decided, what is safe. -->
     <p class="verdict-line">
-      Two decisions block this branch: an unscoped studio lookup on the escalation route and a
-      config write that silently drops unknown keys. The remaining nine findings are mechanical.
+      Two decisions block this branch: an unscoped studio lookup on the escalation route (B1) and a
+      config write that silently drops unknown keys (B2). The remaining nine findings are
+      mechanical.
     </p>
 
     <dl class="runmeta">
@@ -663,21 +714,25 @@
       No design choice in any of these. Spot-check the list and approve it as one batch.
     </p>
 
-    <!-- EXAMPLE ROLL-UP — one row per cluster, no severity, no expansion. -->
+    <!-- EXAMPLE ROLL-UP — one row per cluster, no severity, no expansion. The
+         handle cell stays empty: the counter fills it. -->
     <div class="scroll">
       <table>
         <thead>
           <tr>
+            <th scope="col">Ref</th>
             <th scope="col">Location</th>
             <th scope="col">What</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <th scope="row" class="handle"></th>
             <td class="loc">app/api/escalation/route.ts:22</td>
             <td>Unused <code>NextRequest</code> import left after the handler rewrite.</td>
           </tr>
           <tr>
+            <th scope="row" class="handle"></th>
             <td class="loc">lib/escalation/service.ts:48</td>
             <td>
               <code>await</code> missing on <code>markSeen()</code>, so errors escape the try block.
@@ -729,7 +784,8 @@
   <footer>
     <p>
       Report only &mdash; nothing here has been applied. Say the word and the A batch goes in as one
-      change; B and D need your call first.
+      change; B and D need your call first. Every entry has a handle, so &ldquo;fix B2 and A5&rdquo;
+      is enough to name what you want done.
     </p>
     <p>
       Verdicts come from the review engine's verify pass. Anything marked
