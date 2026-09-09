@@ -120,10 +120,12 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 1. If the `claude-in-chrome` MCP tools are listed as available but a call misbehaves (whole tool fails, screenshot returns blank/errors, devtools features not responding, etc.), do not silently reach for a workaround.
    The usual cause is that Chromium isn't launched: try launching it (on Windows: `Start-Process "C:\Program Files\Chromium\Application\chrome.exe"`: this is Chromium, not Google Chrome, so don't shortcut to `chrome`) and retry, or notify the user about the specific failure and ask them to start / focus the browser.
    Only fall back after the MCP path has been given a real chance.
-2. If the `claude-in-chrome` MCP tools are genuinely not available (not listed at all), fall back to `puppeteer-core` driving an existing Chrome install rather than giving up on the browser task.
+2. If launching Chromium doesn't fix it and the tools still report the extension as not connected, the extension is most likely signed out.
+   The token either expired or was wiped by privacy tools clearing site data. Relaunching the browser can't recover from this, so stop retrying and ask me to sign the extension back in at claude.ai.
+3. If the `claude-in-chrome` MCP tools are genuinely not available (not listed at all), fall back to `puppeteer-core` driving an existing Chrome install rather than giving up on the browser task.
    Install with `npm install puppeteer-core` (skip the full `puppeteer` package: it downloads its own Chromium, which is unnecessary here).
-3. Point out the fallback in the reply so the user knows why a script is being run instead of the MCP tools.
-4. When you take control of a tab, Chrome slides in a "Claude is controlling this tab" banner at the top of the viewport, pushing the page content down.
+4. Point out the fallback in the reply so the user knows why a script is being run instead of the MCP tools.
+5. When you take control of a tab, Chrome slides in a "Claude is controlling this tab" banner at the top of the viewport, pushing the page content down.
    This is a frequent cause of misclicks: coordinates read from an earlier screenshot (or computed before the banner appeared) are now off by the banner's height.
    Take a fresh screenshot after taking control, and re-screenshot if the banner animates in or out mid-task, rather than reusing stale coordinates.
 
