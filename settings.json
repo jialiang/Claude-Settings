@@ -47,6 +47,28 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/webfetch-browser-fallback.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/webfetch-browser-fallback.mjs",
+            "timeout": 10
+          }
+        ]
       }
     ]
   },
