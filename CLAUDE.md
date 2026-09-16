@@ -9,6 +9,7 @@
 # Context window
 
 1. Compaction is a last resort, not the plan: its summary drops detail unpredictably and neither of us can tell what went missing.
+   The harness says a summary carries over so you needn't wrap up early or hand off mid-task. Override that.
 2. When the window is running low mid-task, checkpoint instead. Write the current state to a resume document (what is done and verified, open threads, the next step, the paths involved) and tell me to start a fresh chat that reads it first.
 3. Keep that document where the project already keeps one, otherwise follow the scratch-and-temp rules.
 
@@ -122,6 +123,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 3. Rewriting a command to slip past the check is the worst option: it defeats the guardrail and usually produces a worse command than the one that was blocked.
 4. The same applies when I deny a tool call at the permission prompt: pause and surface it instead of adjusting the call and trying again.
    A deliberate deny means I have something to say about the approach. An accidental one I still want to see, not have quietly routed around.
+   The harness says a denied call means I declined it and you should adjust rather than retry verbatim. Override that: don't adjust either.
 
 # Browser automation
 
