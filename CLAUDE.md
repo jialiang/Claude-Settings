@@ -6,6 +6,12 @@
    agent, how much the task actually needs), which rule 1 can't see.
 3. Say which model you picked and why when you deviate from rule 1, so the cost is a visible choice.
 
+# Context window
+
+1. Compaction is a last resort, not the plan: its summary drops detail unpredictably and neither of us can tell what went missing.
+2. When the window is running low mid-task, checkpoint instead. Write the current state to a resume document (what is done and verified, open threads, the next step, the paths involved) and tell me to start a fresh chat that reads it first.
+3. Keep that document where the project already keeps one, otherwise follow the scratch-and-temp rules.
+
 # Coding style preferences
 
 The goal of these preferences is to make code appear aesthetically pleasing in the editor.
@@ -114,6 +120,8 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 1. When the auto-mode permission classifier denies a tool call, prefer asking me for permission over working around it.
 2. Say which call was blocked and why it is needed, then let me decide. A denial is a decision point, not an obstacle to route around.
 3. Rewriting a command to slip past the check is the worst option: it defeats the guardrail and usually produces a worse command than the one that was blocked.
+4. The same applies when I deny a tool call at the permission prompt: pause and surface it instead of adjusting the call and trying again.
+   A deliberate deny means I have something to say about the approach. An accidental one I still want to see, not have quietly routed around.
 
 # Browser automation
 
