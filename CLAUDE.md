@@ -94,7 +94,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 # Git commits
 
-1. Never add a co-author trailer (`Co-Authored-By:`) or any other authorship attribution to commits.
+1. `attribution` in `settings.json` empties the trailer the harness adds to commits and to PR descriptions. This rule covers what no setting can: never write authorship attribution into a commit message or a PR body yourself, in any form.
 2. Write the commit message as a subject line only: no body or description, unless the user explicitly asks for one.
 
 # Scratch and temp files
