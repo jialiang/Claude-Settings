@@ -52,7 +52,7 @@ function reminds(name, payload) {
   test(`reminds on ${name}`, () => {
     const { isReminded, reason } = run(payload)
     assert.equal(isReminded, true, `stayed quiet for ${name}`)
-    assert.match(reason, /claude-in-chrome/)
+    assert.match(reason, /playwright-core/)
     assert.match(reason, /H\.5/)
   })
 }
@@ -125,7 +125,7 @@ quiet('another tool returning 403', {
 test('the failure event carries additionalContext as well', () => {
   const { output } = run(failure('socket hang up'))
   assert.equal(output.hookSpecificOutput.hookEventName, 'PostToolUseFailure')
-  assert.match(output.hookSpecificOutput.additionalContext, /claude-in-chrome/)
+  assert.match(output.hookSpecificOutput.additionalContext, /playwright-core/)
 })
 
 test('the success event does not repeat itself in additionalContext', () => {

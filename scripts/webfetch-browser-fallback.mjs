@@ -12,7 +12,10 @@
 // raise PostToolUseFailure. Both events are handled here.
 
 // A missing page is missing in a browser too, so 404 stays quiet. These are the codes
-// where the browser's own session (cookies, a real user-agent) changes the answer.
+// where running a real browser engine can change the answer, most often because the
+// server served a challenge page rather than the document. Some of them (401, 407) are
+// plain login walls that the browser route cannot solve either: the reason text below
+// says so, rather than this list trying to guess which is which from the code alone.
 const BLOCKED_CODES = new Set([401, 402, 403, 407, 429, 451])
 
 // Transport and safety-check failures worth retrying. An interrupted fetch is the user
@@ -58,12 +61,12 @@ function buildReason(url, symptom) {
   return (
     `WebFetch on ${url || 'that URL'} ${symptom}, which is a client-side failure.\n\n` +
     'Per rule H.5 of ~/.claude/CLAUDE.md, do NOT fall back to remembered facts and do not ' +
-    'present this as unavailable. Retry the same URL through the `claude-in-chrome` MCP ' +
-    "tools: they load it in a real browser session with the user's cookies, which is what " +
-    'most of these failures are missing.\n\n' +
-    'If the browser route also fails (rule H.6), ask the user to fetch the page and paste ' +
-    'it back, naming the URL and the part you need. If the tools are listed but misbehave, ' +
-    'rule 1 of "Browser automation" applies: launch Chromium first, then retry.'
+    'present this as unavailable. Retry the same URL through `playwright-core`, following ' +
+    'the "Browser automation" rules: it runs a real browser engine, which is what a bot ' +
+    'challenge, a script-rendered page or an empty body is missing.\n\n' +
+    'That browser drives a scratch profile holding no logins. If the page turns out to be ' +
+    'a login wall (rule H.6) the retry fails the same way, so skip it and go to rule H.7: ' +
+    'ask the user to fetch the page and paste it back, naming the URL and the part needed.'
   )
 }
 
