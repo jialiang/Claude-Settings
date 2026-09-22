@@ -79,6 +79,7 @@
   },
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "stable",
+  "syncClaudeAiSkills": false,
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
