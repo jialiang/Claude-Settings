@@ -131,9 +131,13 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 1. `playwright-core` is the browser route: there is no Claude in Chrome extension here (removed deliberately), so don't hunt for `claude-in-chrome` MCP tools or offer to reinstall it unless I ask. Never the full `playwright` package either: its install downloads browser builds we don't need.
 2. It is a tracked dependency of `~/.claude`, so scripts under `~/.claude/scripts/` can `import { chromium } from 'playwright-core'`. A script in the temp directory can't, because node resolves `node_modules` from the script's own location, so import it by path:
    `await import(pathToFileURL('C:/Users/Jia Liang/.claude/node_modules/playwright-core/index.mjs').href)`
+   On macOS the path is `/Users/qanvast/.claude/node_modules/playwright-core/index.mjs`.
+   `node_modules` is not tracked, so on a fresh machine run `npm ci --prefix ~/.claude` first.
 3. One browser per session, shared by every script in it, so a login or a half-finished flow carries across them. Probe `http://127.0.0.1:9222/json/version` first: an answer means attach to what is already up, no answer means start one, which is also the recovery path for when I have closed it by hand.
    `Start-Process "C:\Program Files\Chromium\Application\chrome.exe" -ArgumentList '--remote-debugging-port=9222','--user-data-dir=C:\Users\JIALIA~1\AppData\Local\Temp\claude-browser-profile','--no-first-run','--no-default-browser-check'`
    Start it detached like that, outside node, so playwright never owns its lifetime. Keep the short `JIALIA~1` form: `-ArgumentList` splits on spaces, so `Jia Liang` breaks the flag in half and Chromium never starts.
+   On macOS, `open` detaches it the same way (`-n` forces a new instance alongside any running one):
+   `open -na Chromium --args --remote-debugging-port=9222 --user-data-dir=/tmp/claude-browser-profile --no-first-run --no-default-browser-check`
 4. Launch headed for anything out on the internet: headless announces itself in its user agent (`HeadlessChrome/152.0.0.0` where headed says plain `Chrome/152.0.0.0`), which is the first thing bot detection reads. `--headless` is only for localhost or the LAN.
 5. Attach with `chromium.connectOverCDP('http://127.0.0.1:9222')`, which hands back the full playwright API (locators, auto-waiting, `page.route`, emulation) because the protocol is only transport: never drop to raw CDP.
    Never `launch()` or `launchServer()` for session work. Both tie the browser to the node process, so even a hard kill takes it down. `launchServer` also gives each client an empty view, silently losing the shared state.
