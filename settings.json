@@ -83,6 +83,10 @@
     "command": "node ~/.claude/scripts/usage-statusline.mjs",
     "refreshInterval": 30
   },
+  "enabledPlugins": {
+    "cc-plugin-you-should-know@builtin": true,
+    "cc-plugin-telemetry@builtin": false
+  },
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "stable",
   "tui": "fullscreen",
