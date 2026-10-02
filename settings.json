@@ -88,7 +88,7 @@
     "cc-plugin-telemetry@builtin": false
   },
   "effortLevel": "xhigh",
-  "autoUpdatesChannel": "stable",
+  "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
