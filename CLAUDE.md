@@ -84,8 +84,10 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 4. Treat search as abundant, not scarce: firing several searches in one turn is normal and expected. Default to verifying rather than hedging with "as of my knowledge".
 5. When `WebFetch` fails for a client-side reason (bot challenge, JS-only page, empty body), don't fall back to memory.
    Retry the page through `playwright-core` instead (see "Browser automation"): it runs a real browser engine, which is what these failures are missing.
-6. A login wall is the exception: the browser route drives a scratch profile with no sessions in it, so it will fail the same way. Skip straight to rule 7.
-7. If the browser route also fails, ask the user to fetch the content and paste it back. Say which URL and what part you need.
+6. A non-200 response that still carries a page often says how to get past it (a cookie check, "wait N seconds", a JS challenge). Read it before calling the page blocked.
+   In the browser route, wait past the stated delay and for the reload before reading the content. Call it blocked only when the page says access is denied with no way through.
+7. A login wall is the exception: the browser route drives a scratch profile with no sessions in it, so it will fail the same way. Skip straight to rule 8.
+8. If the browser route also fails, ask the user to fetch the content and paste it back. Say which URL and what part you need.
 
 ## I. Escape hatch
 

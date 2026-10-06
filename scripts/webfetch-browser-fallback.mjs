@@ -63,9 +63,10 @@ function buildReason(url, symptom) {
     'Per rule H.5 of ~/.claude/CLAUDE.md, do NOT fall back to remembered facts and do not ' +
     'present this as unavailable. Retry the same URL through `playwright-core`, following ' +
     'the "Browser automation" rules: it runs a real browser engine, which is what a bot ' +
-    'challenge, a script-rendered page or an empty body is missing.\n\n' +
+    'challenge, a script-rendered page or an empty body is missing. If the browser shows ' +
+    'a challenge or interstitial page, read it and follow what it says (rule H.6).\n\n' +
     'That browser drives a scratch profile holding no logins. If the page turns out to be ' +
-    'a login wall (rule H.6) the retry fails the same way, so skip it and go to rule H.7: ' +
+    'a login wall (rule H.7) the retry fails the same way, so skip it and go to rule H.8: ' +
     'ask the user to fetch the page and paste it back, naming the URL and the part needed.'
   )
 }
