@@ -2,7 +2,7 @@
 // the script the way the hook feeds it, so the JSON contract is covered along with the
 // trigger set. The response shapes are copied from real transcript results.
 //
-// Run with `node --test "C:/Users/Jia Liang/.claude/scripts/webfetch-browser-fallback.test.mjs"`.
+// Run with `node --test ~/.claude/scripts/webfetch-browser-fallback.test.mjs`.
 // Name the file: `node --test <directory>` resolves the directory as a module and fails
 // on the Node version installed here.
 

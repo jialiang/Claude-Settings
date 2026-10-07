@@ -1,7 +1,7 @@
 // Black-box tests for the PreToolUse guard: each case is fed through the script the
 // same way the hook feeds it, so the JSON contract is covered along with the rules.
 //
-// Run with `node --test "C:/Users/Jia Liang/.claude/scripts/"`.
+// Run with `node --test ~/.claude/scripts/`.
 
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'

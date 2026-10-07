@@ -112,7 +112,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 1. Issue each command as its own standalone call with absolute, literal paths.
 2. Don't chain `cd <dir> && <command>`. The Bash tool's working directory persists between calls, so the `cd` buys nothing and it turns the whole line into a compound the permission pre-check has to reject.
-3. Keep write and delete targets absolute (`rm -rf "C:/Users/Jia Liang/Desktop/project/build"`, not `rm -rf build`).
+3. Keep write and delete targets absolute (`rm -rf "C:/Users/me/Desktop/project/build"`, not `rm -rf build`).
    On Windows the pre-check resolves a relative target against the post-`cd` directory to rule out a Cygwin-emulated symlink escaping the allowed directories. When that directory is only known at runtime the check can't run, so the command falls through to a manual prompt.
 4. In any command that writes, avoid shell variables, `$(...)`, subshells and heredocs.
    Each of these is a runtime-only value, which makes the command statically unanalysable and forces the same manual prompt.
@@ -130,14 +130,14 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 # Browser automation
 
-1. `playwright-core` is the browser route: there is no Claude in Chrome extension here (removed deliberately), so don't hunt for `claude-in-chrome` MCP tools or offer to reinstall it unless I ask. Never the full `playwright` package either: its install downloads browser builds we don't need.
+1. `playwright-core` is the browser route. Never the full `playwright` package: its install downloads browser builds we don't need.
 2. It is a tracked dependency of `~/.claude`, so scripts under `~/.claude/scripts/` can `import { chromium } from 'playwright-core'`. A script in the temp directory can't, because node resolves `node_modules` from the script's own location, so import it by path:
-   `await import(pathToFileURL('C:/Users/Jia Liang/.claude/node_modules/playwright-core/index.mjs').href)`
-   On macOS the path is `/Users/qanvast/.claude/node_modules/playwright-core/index.mjs`.
+   `await import(pathToFileURL(join(homedir(), '.claude/node_modules/playwright-core/index.mjs')).href)`
+   (`join` from `node:path`, `homedir` from `node:os`, so the same line works on every OS).
    `node_modules` is not tracked, so on a fresh machine run `npm ci --prefix ~/.claude` first.
 3. One browser per session, shared by every script in it, so a login or a half-finished flow carries across them. Probe `http://127.0.0.1:9222/json/version` first: an answer means attach to what is already up, no answer means start one, which is also the recovery path for when I have closed it by hand.
-   `Start-Process "C:\Program Files\Chromium\Application\chrome.exe" -ArgumentList '--remote-debugging-port=9222','--user-data-dir=C:\Users\JIALIA~1\AppData\Local\Temp\claude-browser-profile','--no-first-run','--no-default-browser-check'`
-   Start it detached like that, outside node, so playwright never owns its lifetime. Keep the short `JIALIA~1` form: `-ArgumentList` splits on spaces, so `Jia Liang` breaks the flag in half and Chromium never starts.
+   `Start-Process "C:\Program Files\Chromium\Application\chrome.exe" -ArgumentList '--remote-debugging-port=9222',"--user-data-dir=$env:TEMP\claude-browser-profile",'--no-first-run','--no-default-browser-check'`
+   Start it detached like that, outside node, so playwright never owns its lifetime. Keep `$env:TEMP` (double-quoted so it expands): it holds the short 8.3 form of the path (`C:\Users\JOHNDO~1\...`), and `-ArgumentList` splits on spaces, so a home folder like `John Doe` would break the flag in half and Chromium never starts.
    On macOS, `open` detaches it the same way (`-n` forces a new instance alongside any running one):
    `open -na Chromium --args --remote-debugging-port=9222 --user-data-dir=/tmp/claude-browser-profile --no-first-run --no-default-browser-check`
 4. Launch headed for anything out on the internet: headless announces itself in its user agent (`HeadlessChrome/152.0.0.0` where headed says plain `Chrome/152.0.0.0`), which is the first thing bot detection reads. `--headless` is only for localhost or the LAN.
@@ -146,7 +146,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 6. End every script with `browser.close()`: over CDP that only detaches (the browser stays up) and it is what releases node's event loop. Forgetting it leaks no browser, it hangs the script.
    Leave the browser running when a task ends and shut it down only when I ask, or offer once the session's browser work is clearly over.
 7. `browser.contexts()[0]` carries whatever the last script left behind, so open a fresh page rather than trusting `pages()[0]`. Use `newContext()` when a task needs viewport, userAgent, locale or permissions: those apply at creation and can't be retrofitted onto an adopted context.
-8. That profile is scratch space whose debugging port lets any local process drive the browser, so never sign it into anything that matters. My real browsing is Firefox Developer Edition, which playwright can't drive: if a task needs a genuinely authenticated session, ask me. Say in the reply when a browser script runs.
+8. That profile is scratch space whose debugging port lets any local process drive the browser, so never sign it into anything that matters. If a task needs a genuinely authenticated session, ask me. Say in the reply when a browser script runs.
 
 # Communication
 
