@@ -144,7 +144,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 5. Attach with `chromium.connectOverCDP('http://127.0.0.1:9222')`, which hands back the full playwright API (locators, auto-waiting, `page.route`, emulation) because the protocol is only transport: never drop to raw CDP.
    Never `launch()` or `launchServer()` for session work. Both tie the browser to the node process, so even a hard kill takes it down. `launchServer` also gives each client an empty view, silently losing the shared state.
 6. End every script with `browser.close()`: over CDP that only detaches (the browser stays up) and it is what releases node's event loop. Forgetting it leaks no browser, it hangs the script.
-   Leave the browser running when a task ends and shut it down only when I ask, or offer once the session's browser work is clearly over.
+   Leave the browser running when a task ends and shut it down only when I ask.
 7. `browser.contexts()[0]` carries whatever the last script left behind, so open a fresh page rather than trusting `pages()[0]`. Use `newContext()` when a task needs viewport, userAgent, locale or permissions: those apply at creation and can't be retrofitted onto an adopted context.
 8. That profile is scratch space whose debugging port lets any local process drive the browser, so never sign it into anything that matters. If a task needs a genuinely authenticated session, ask me. Say in the reply when a browser script runs.
 
