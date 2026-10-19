@@ -151,4 +151,6 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 # Communication
 
 1. Present lists of items as numbered lists (not bullets) so I can reference them back by number (e.g. "fix 3").
+   1. When one reply has more than one list, every item needs a unique label so a bare reference can't be ambiguous.
+      Either continue the count across lists (first list 1-3, second starts at 4) or prefix each list with a letter (A1, A2 then B1, B2).
 2. Avoid the Oxford comma in prose as well, not only in code (see E.1).
