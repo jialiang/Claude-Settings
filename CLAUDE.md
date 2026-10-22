@@ -41,6 +41,9 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 1. Code lines should not exceed 100 characters.
 2. Comment lines should target ~80 characters: wrap tighter than the code ceiling for readability.
    Most formatters don't enforce this, so it's a manual convention.
+   1. Break comment lines at sentence or clause boundaries so each line holds a whole sentence or clause.
+      Never leave an orphan (a few stray words wrapped onto a line of their own).
+      Running past ~80 to keep a sentence or clause on one line is fine, up to the 100-character code limit.
 3. Avoid constructs that force the formatter to wrap onto deeply-indented continuation lines.
 
 ## D. Comments
