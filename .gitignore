@@ -17,6 +17,7 @@
 !/scripts/
 !/skills/
 !/commands/
+!/presets/
 
 # --- Never track, even inside the allowed directories above ---
 .env
