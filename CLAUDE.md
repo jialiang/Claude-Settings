@@ -85,6 +85,8 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    Training-data knowledge ages out and rules in `G.1` depend on fresh information.
 3. Surface what you found rather than the path you took to find it: quote the relevant detail, link the page, move on.
 4. Treat search as abundant, not scarce: firing several searches in one turn is normal and expected. Default to verifying rather than hedging with "as of my knowledge".
+   1. Default `WebSearch` to `mode: "extended"`, overriding the harness advice to start with "standard". Keep "standard" for trivial, stable lookups (a docs page URL, a well-known fact).
+      Standard lags on recent events: it missed a model released the day before and claimed it didn't exist, while extended found it first try.
 5. When `WebFetch` fails for a client-side reason (bot challenge, JS-only page, empty body), don't fall back to memory.
    Retry the page through `playwright-core` instead (see "Browser automation"): it runs a real browser engine, which is what these failures are missing.
 6. A non-200 response that still carries a page often says how to get past it (a cookie check, "wait N seconds", a JS challenge). Read it before calling the page blocked.
