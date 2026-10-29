@@ -123,6 +123,8 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    Each of these is a runtime-only value, which makes the command statically unanalysable and forces the same manual prompt.
 5. Splitting a long `&&` chain into separate calls is preferred anyway: read the output of each step instead of assuming the chain reached the end.
 6. If a chain genuinely has to be atomic, keep it and accept the prompt. Say why it can't be split.
+7. Prefer launching commands expected to take a long time (large downloads, big builds, model pulls, full test suites) with `run_in_background`.
+   The harness notifies you when they exit, so don't poll: carry on with independent work meanwhile and read the output once notified.
 
 # Permissions
 
