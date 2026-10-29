@@ -97,6 +97,12 @@ async function fetchUsage() {
   }
 }
 
+// The statusline payload and the account endpoint report the same window's
+// reset time a second or so apart, so only a clearly later time counts as a
+// fresh window. Treating any later second as fresh let a stale reading with a
+// one-second-later reset time block every newer figure indefinitely.
+const sameWindowToleranceSeconds = 120
+
 // Usage within a window only ever climbs, so the higher reading is the more
 // recent one. A later reset time means a fresh window opened, and that reading
 // wins outright however low it is.
@@ -104,8 +110,9 @@ function mergeWindow(current, incoming) {
   if (!incoming) return current
   if (!current) return incoming
 
-  if (Number(incoming.resets_at) > Number(current.resets_at)) return incoming
-  if (Number(incoming.resets_at) < Number(current.resets_at)) return current
+  const drift = Number(incoming.resets_at) - Number(current.resets_at)
+  if (drift > sameWindowToleranceSeconds) return incoming
+  if (drift < -sameWindowToleranceSeconds) return current
 
   return pct(incoming) > pct(current) ? incoming : current
 }
