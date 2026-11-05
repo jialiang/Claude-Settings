@@ -149,6 +149,9 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    On macOS, `open` detaches it the same way (`-n` forces a new instance alongside any running one):
    `open -na Chromium --args --remote-debugging-port=9222 --user-data-dir=/tmp/claude-browser-profile --no-first-run --no-default-browser-check`
 4. Launch headed for anything out on the internet: headless announces itself in its user agent (`HeadlessChrome/152.0.0.0` where headed says plain `Chrome/152.0.0.0`), which is the first thing bot detection reads. `--headless` is only for localhost or the LAN.
+   1. The shared browser must be headed for internet work, including the `WebFetch` fallback (H.5). An earlier localhost task may have left a headless one on port 9222, so read the `Browser` field of the rule 3 probe before attaching.
+      `HeadlessChrome/...` means don't reuse it: end the process listening on port 9222 and start a headed one with the rule 3 command. Using the same `--user-data-dir` keeps the profile's cookies and logins.
+      This is the one case where I don't need to ask before shutting the browser down (rule 6).
 5. Attach with `chromium.connectOverCDP('http://127.0.0.1:9222')`, which hands back the full playwright API (locators, auto-waiting, `page.route`, emulation) because the protocol is only transport: never drop to raw CDP.
    Never `launch()` or `launchServer()` for session work. Both tie the browser to the node process, so even a hard kill takes it down. `launchServer` also gives each client an empty view, silently losing the shared state.
 6. End every script with `browser.close()`: over CDP that only detaches (the browser stays up) and it is what releases node's event loop. Forgetting it leaks no browser, it hangs the script.

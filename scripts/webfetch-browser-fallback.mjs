@@ -63,7 +63,9 @@ function buildReason(url, symptom) {
     'Per rule H.5 of ~/.claude/CLAUDE.md, do NOT fall back to remembered facts and do not ' +
     'present this as unavailable. Retry the same URL through `playwright-core`, following ' +
     'the "Browser automation" rules: it runs a real browser engine, which is what a bot ' +
-    'challenge, a script-rendered page or an empty body is missing. If the browser shows ' +
+    'challenge, a script-rendered page or an empty body is missing. The shared browser ' +
+    'must be headed: if the port 9222 probe reports `HeadlessChrome`, do not reuse it. ' +
+    'Replace it with a headed one (rule 4.1). If the browser shows ' +
     'a challenge or interstitial page, read it and follow what it says (rule H.6).\n\n' +
     'That browser drives a scratch profile holding no logins. If the page turns out to be ' +
     'a login wall (rule H.7) the retry fails the same way, so skip it and go to rule H.8: ' +
