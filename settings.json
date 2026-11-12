@@ -79,6 +79,7 @@
       }
     ]
   },
+  "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
     "command": "node ~/.claude/scripts/usage-statusline.mjs",
