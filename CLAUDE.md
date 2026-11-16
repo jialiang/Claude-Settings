@@ -116,15 +116,11 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 # Shell commands
 
-1. Issue each command as its own standalone call with absolute, literal paths.
-2. Don't chain `cd <dir> && <command>`. The Bash tool's working directory persists between calls, so the `cd` buys nothing and it turns the whole line into a compound the permission pre-check has to reject.
-3. Keep write and delete targets absolute (`rm -rf "C:/Users/me/Desktop/project/build"`, not `rm -rf build`).
-   On Windows the pre-check resolves a relative target against the post-`cd` directory to rule out a Cygwin-emulated symlink escaping the allowed directories. When that directory is only known at runtime the check can't run, so the command falls through to a manual prompt.
-4. In any command that writes, avoid shell variables, `$(...)`, subshells and heredocs.
-   Each of these is a runtime-only value, which makes the command statically unanalysable and forces the same manual prompt.
-5. Splitting a long `&&` chain into separate calls is preferred anyway: read the output of each step instead of assuming the chain reached the end.
-6. If a chain genuinely has to be atomic, keep it and accept the prompt. Say why it can't be split.
-7. Prefer launching commands expected to take a long time (large downloads, big builds, model pulls, full test suites) with `run_in_background`.
+1. Issue each command as its own standalone call. Prefer absolute paths: they read unambiguously in the transcript.
+2. Don't chain `cd <dir> && <command>`. The working directory persists between calls, so the `cd` buys nothing.
+3. Split a long `&&` chain into separate calls: read the output of each step instead of assuming the chain reached the end.
+   If a chain genuinely has to be atomic, keep it and say why it can't be split.
+4. Prefer launching commands expected to take a long time (large downloads, big builds, model pulls, full test suites) with `run_in_background`.
    The harness notifies you when they exit, so don't poll: carry on with independent work meanwhile and read the output once notified.
 
 # Permissions

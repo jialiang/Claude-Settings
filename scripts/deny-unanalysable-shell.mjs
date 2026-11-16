@@ -5,7 +5,10 @@
 // text. Anything resolved at runtime (a chained `cd`, a relative path, a shell variable)
 // leaves it unjudgeable, so the call falls through to a manual approval prompt. Denying
 // it here hands the reason back to Claude, which rewrites it within the same turn.
-// The rules mirror the "Shell commands" section of ~/.claude/CLAUDE.md.
+//
+// Retired on 2026-11-16: auto mode no longer prompted for any of these shapes, so the
+// hook was removed from settings.json and the matching CLAUDE.md rules were dropped.
+// Re-register it only if a stricter permission mode brings the prompts back.
 //
 // Where a rule is ambiguous the guard stays quiet. Missing a command costs one approval
 // prompt, which is what would have happened without the guard; denying a correct command
