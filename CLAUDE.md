@@ -161,3 +161,19 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    1. When one reply has more than one list, every item needs a unique label so a bare reference can't be ambiguous.
       Either continue the count across lists (first list 1-3, second starts at 4) or prefix each list with a letter (A1, A2 then B1, B2).
 2. Avoid the Oxford comma in prose as well, not only in code (see E.1).
+
+# Prose
+
+This covers prose I'll read later or pass on: notes, docs, READMEs, summaries, emails.
+Code comments follow D instead.
+
+1. Write for easy reading over compactness. Dense, clause-packed sentences full of shorthand are the main thing to avoid.
+2. Lead with the conclusion. Put sources, method and background at the end.
+   1. For status summaries, use a takeaway / why it was reviewed / why it changes or doesn't shape where it fits.
+3. Use plain words. Spell out jargon, abbreviations and internal shorthand the first time (e.g. "net asset value (NAV)", "2× headroom" as "double the cushion needed").
+4. Prefer everyday wording over formal or technical phrasing (e.g. "without changing habits", not "with no change in behaviour").
+5. Keep sentences short: one idea each. Prefer full stops over semicolons and long chains of clauses.
+6. Write notes about me in the third person.
+7. Don't use em dashes.
+8. Keep every number, date, name and link exact: readability never changes a fact.
+   Don't add what the source doesn't say (e.g. a direction on "moved 0.4%").
