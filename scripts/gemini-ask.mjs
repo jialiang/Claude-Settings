@@ -8,7 +8,7 @@
  * Usage:
  *   node ~/.claude/scripts/gemini-ask.mjs "your prompt here"
  *   git diff | node ~/.claude/scripts/gemini-ask.mjs "Review this diff for bugs"
- *   node ~/.claude/scripts/gemini-ask.mjs --model gemini-2.5-pro "deep critique"
+ *   node ~/.claude/scripts/gemini-ask.mjs --model gemini-pro-latest "deep critique"
  *
  * Reads GEMINI_API_KEY (required) and GEMINI_MODEL (optional) from ~/.claude/.env
  * or the process environment. Stdin, when piped, is appended to the prompt as context.
@@ -64,6 +64,22 @@ function parseArgs(argv) {
   return { model, prompt: args.join(' ').trim() }
 }
 
+// Rate limited (429) or overloaded (503): both clear up on their own within seconds.
+const RETRYABLE_STATUSES = new Set([429, 503])
+const MAX_ATTEMPTS = 3
+
+async function fetchWithRetry(url, init) {
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(url, init)
+    const isRetryable = RETRYABLE_STATUSES.has(res.status) && attempt < MAX_ATTEMPTS
+    if (res.ok || !isRetryable) return res
+
+    const delaySeconds = 2 * attempt
+    console.error(`Gemini busy (${res.status}), retrying in ${delaySeconds}s...`)
+    await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000))
+  }
+}
+
 async function main() {
   loadEnv()
 
@@ -74,7 +90,8 @@ async function main() {
   }
 
   const { model: modelFlag, prompt } = parseArgs(process.argv.slice(2))
-  const model = modelFlag || process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+  // A "-latest" alias tracks Google's current model, so retirements don't break it.
+  const model = modelFlag || process.env.GEMINI_MODEL || 'gemini-flash-latest'
 
   const stdin = await readStdin()
   const fullPrompt = stdin ? `${prompt}\n\n--- CONTEXT ---\n${stdin}` : prompt
@@ -86,7 +103,7 @@ async function main() {
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
     body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] }),
