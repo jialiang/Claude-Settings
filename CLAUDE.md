@@ -167,13 +167,4 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 This covers prose I'll read later or pass on: notes, docs, READMEs, summaries, emails.
 Code comments follow D instead.
 
-1. Write for easy reading over compactness. Dense, clause-packed sentences full of shorthand are the main thing to avoid.
-2. Lead with the conclusion. Put sources, method and background at the end.
-   1. For status summaries, use a takeaway / why it was reviewed / why it changes or doesn't shape where it fits.
-3. Use plain words. Spell out jargon, abbreviations and internal shorthand the first time (e.g. "net asset value (NAV)", "2× headroom" as "double the cushion needed").
-4. Prefer everyday wording over formal or technical phrasing (e.g. "without changing habits", not "with no change in behaviour").
-5. Keep sentences short: one idea each. Prefer full stops over semicolons and long chains of clauses.
-6. Write notes about me in the third person.
-7. Don't use em dashes.
-8. Keep every number, date, name and link exact: readability never changes a fact.
-   Don't add what the source doesn't say (e.g. a direction on "moved 0.4%").
+1. Write it by the `prose` skill (`~/.claude/skills/prose/SKILL.md`): load the skill before writing any.
