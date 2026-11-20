@@ -33,34 +33,24 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/block-webfetch.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "node ~/.claude/scripts/usage-context.mjs",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "WebFetch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/scripts/webfetch-browser-fallback.mjs",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "WebFetch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/scripts/webfetch-browser-fallback.mjs",
             "timeout": 10
           }
         ]
