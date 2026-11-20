@@ -116,11 +116,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 # Shell commands
 
-1. Issue each command as its own standalone call. Prefer absolute paths: they read unambiguously in the transcript.
-2. Don't chain `cd <dir> && <command>`. The working directory persists between calls, so the `cd` buys nothing.
-3. Split a long `&&` chain into separate calls: read the output of each step instead of assuming the chain reached the end.
-   If a chain genuinely has to be atomic, keep it and say why it can't be split.
-4. Prefer launching commands expected to take a long time (large downloads, big builds, model pulls, full test suites) with `run_in_background`.
+1. Prefer launching commands expected to take a long time (large downloads, big builds, model pulls, full test suites) with `run_in_background`.
    The harness notifies you when they exit, so don't poll: carry on with independent work meanwhile and read the output once notified.
 
 # Permissions
