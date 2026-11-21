@@ -168,7 +168,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
 
 # Prose
 
-This covers prose I'll read later or pass on: notes, docs, READMEs, summaries, emails.
+This covers prose I'll read later or pass on: notes, docs, READMEs, memories, commit messages, summaries, emails.
 Code comments follow D instead, except that a comment longer than about four lines also takes the shape in the skill's rule 10.
 
 1. Write it by the `prose` skill (`~/.claude/skills/prose/SKILL.md`): load the skill before writing any.

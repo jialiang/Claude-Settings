@@ -1,15 +1,17 @@
 ---
 name: prose
 description: |
-  Rules for prose the user will read later or pass on: notes, docs, READMEs,
-  summaries, emails plus the shape of long code comments. Load before writing or
-  editing any of these, including a code comment longer than about four lines.
+  Rules and voice for prose the user will read later or pass on: notes, docs,
+  READMEs, memories, commit messages, summaries, emails plus the shape of long
+  code comments. Load before writing or editing any of these, including a code
+  comment longer than about four lines.
 ---
 
 # Prose
 
 This covers prose I'll read later or pass on: notes, docs, READMEs, summaries, emails.
 Code comments follow D in `~/.claude/CLAUDE.md` instead, except that a comment longer than about four lines also takes the shape in rule 10.
+The voice in rule 11 applies to everything written durably except code (comments included): docs, READMEs, notes, memories, commit messages, emails. Replies in the chat don't need it.
 
 1. Write for easy reading over compactness. Dense, clause-packed sentences full of shorthand are the main thing to avoid.
    1. Readability is the goal. The rules here and in D are guardrails. Text that breaks no rule but reads densely still fails this one.
@@ -23,7 +25,7 @@ Code comments follow D in `~/.claude/CLAUDE.md` instead, except that a comment l
 8. Keep every number, date, name and link exact: readability never changes a fact.
    Don't add what the source doesn't say (e.g. a direction on "moved 0.4%").
 9. Avoid Claudisms: habits that mark text as written by Claude. Say the point plainly instead.
-   1. Contrasts against a claim nobody made ("It's not X, it's Y", "not just X but Y").
+   1. Contrasts against a claim nobody made ("It's not X, it's Y", "not just X but Y"). Answering an assumption readers really hold is fine (rule 11.2).
    2. Staged openers that announce the point instead of making it ("Here's the thing:", "The short answer:", "Great question").
    3. Punchy one-line closers that repeat what was already said ("That's the whole trick.").
    4. Rhetorical questions answered straight away ("The result? Faster builds.").
@@ -54,3 +56,16 @@ Code comments follow D in `~/.claude/CLAUDE.md` instead, except that a comment l
      * 3. Opens READY_PORT, the address the suite probes.
      */
     ```
+
+11. Write in a business casual voice, like an experienced engineer explaining something to a peer on a forum. Friendly and direct, not formal or salesy.
+    1. Use "you" for the reader. First person belongs to whoever the text speaks for: in my READMEs and docs that's me ("I find AWS Lambda to produce more accurate numbers"). In notes and memories, keep me in the third person (rule 6) and state findings directly.
+    2. Name an assumption the reader is likely to have, then answer it ("You'd think several dozen HTTP requests shouldn't exhaust 0.25 vCPU, but sometimes it does").
+    3. Admit uncertainty in everyday words ("As far as I know", "The how and why is fuzzy"), not formal hedges ("It is possible that", "This may potentially").
+    4. Give the reader a practical takeaway: what to check and what to do about it.
+    5. Explanations stay as paragraphs. Only steps that happen in order become lists (rule 10).
+
+    Example (from the performance-monitor readme):
+
+    > You'd think several dozen HTTP requests shouldn't exhaust 0.25 vCPU but sometimes it does. The how and why is fuzzy but this seems to be a cloud provider hardware and execution environment issue.
+    >
+    > To see how badly this affects you, sum every HTTP request component and compare it with the Total Time to Fetch. If there's a huge difference, then you may need to switch regions, increase vCPU or switch cloud platforms for that region.
