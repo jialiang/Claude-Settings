@@ -1,6 +1,6 @@
 ---
 name: my-review
-description: Personal multi-agent code review. Use whenever the user asks for "my-review", "my review", "a review", to "review" changes/a PR/a diff/a file/a branch. Inline: clarify scope, partition the branch into topics, ask the user which review lenses to run (checkbox with recommendations), then launch the review-workflow.js engine (lens × topic finders → CONFIRMED/PLAUSIBLE/REFUTED verify with an A–E/P action bucket + severity/impact → root-cause clustering). The main loop then triages the clusters, optionally live-tests UI in a playwright-driven browser, and writes the report ordered by attention cost. Report-only.
+description: Personal multi-agent code review. Use whenever the user asks for "my-review", "my review", "a review", to "review" changes/a PR/a diff/a file/a branch. Inline: clarify scope, partition the branch into topics, ask the user which review lenses to run (checkbox with recommendations), then launch the review-workflow.js engine (lens × topic finders → CONFIRMED/PLAUSIBLE/REFUTED verify with an A–E/P action bucket + severity/impact → root-cause clustering). The main loop then triages the clusters, optionally live-tests UI in a puppeteer-driven browser, and writes the report ordered by attention cost. Report-only.
 ---
 
 # Review
@@ -103,14 +103,14 @@ To iterate on the engine, edit `review-workflow.js` and re-launch with the same 
 
 > **Resume gotcha — always re-pass `args`.** Resuming re-runs the whole wrapper script, but `resumeFromRunId` does **not** carry the original `args` (topics/diffCommand/etc.). If you resume with only `{ scriptPath, resumeFromRunId }`, the wrapper re-runs with `args === undefined` and the engine refuses with the missing-args `error`. **Resume with `{ scriptPath, resumeFromRunId, args: <the same args object> }`.** Cached agents still hit by prompt match, so only the failed finders re-run.
 
-## 4. Live testing with playwright (inline, when UI/flow changed)
+## 4. Live testing with puppeteer (inline, when UI/flow changed)
 
 For topics marked `ui: true`, verify the flow live rather than reasoning about it — this can't run inside the headless workflow.
 
-- Drive the shared session browser with `playwright-core`, set up exactly as the global CLAUDE.md "Browser automation" section says (attach over CDP, fresh page, `browser.close()` at the end). Write the test scripts to the scratchpad, not the repo under review.
+- Drive the shared session browser with `puppeteer-core`, set up exactly as the global CLAUDE.md "Browser automation" section says (attach with `puppeteer.connect()`, fresh page, `browser.disconnect()` at the end, never `browser.close()`). Write the test scripts to the scratchpad, not the repo under review.
 - Exercise the real flow — load the page, run the happy path and the obvious failure paths, save screenshots with `page.screenshot()` to the scratchpad and `Read` them to see the result.
 - **Capture the console even on a flow that "looks fine"** — a clean-looking page can still log a hydration mismatch, a swallowed fetch error, or a thrown effect. These are exactly the bugs the static engine can't see (it doesn't run the code), so the console is where live testing earns its keep. Listen to `console`, `pageerror` and `requestfailed` before navigating, and filter for `error|hydration|mismatch|failed`.
-- **File pickers** — fill them with `locator.setInputFiles()` on the `<input type="file">` (or the `filechooser` event for a custom button), using a throwaway file from the scratchpad.
+- **File pickers** — fill them with `elementHandle.uploadFile()` on the `<input type="file">` (or `page.waitForFileChooser()` for a custom button), using a throwaway file from the scratchpad.
 - **If the browser tooling misbehaves** — can't attach, can't screenshot, a login wall the scratch profile can't pass — **pause and notify the user. Do not work around it** (no JS-injection hacks, etc.). (Per global CLAUDE.md.) Note the gap honestly and continue with what you _can_ test.
 
 ## 5. Triage — you are the reviewer, the engine's findings are pre-verified, not final (inline)

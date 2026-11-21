@@ -31,7 +31,7 @@ const reason =
   'Many default server configurations reject curl: they answer with a bot challenge, an ' +
   'empty body or a 403, or let the request time out. Before AI tools, ordinary visitors ' +
   'never used curl, so servers treat it as a bot. Such a failure says nothing about the ' +
-  "page or the site's wishes: follow rule H.5 and retry through the playwright-core " +
+  "page or the site's wishes: follow rule H.5 and retry through the puppeteer-core " +
   'browser. A script-rendered page needs the browser for the same reason.'
 
 process.stdout.on('error', () => {})

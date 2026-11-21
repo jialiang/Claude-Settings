@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Prints the rendered text of a web page, read through the shared browser on port 9222.
 // This is the browser route of rule H.5 in ~/.claude/CLAUDE.md, packaged so an agent
-// runs one command instead of writing a playwright script each time.
+// runs one command instead of writing a puppeteer script each time.
 //
 // Usage: node ~/.claude/scripts/read-page.mjs <url>
 //
@@ -9,7 +9,7 @@
 // Exit codes: 0 read, 1 navigation failed, 2 no usable browser on port 9222.
 
 import { spawn } from 'node:child_process'
-import { chromium } from 'playwright-core'
+import puppeteer from 'puppeteer-core'
 
 const DEBUG_URL = 'http://127.0.0.1:9222'
 const WINDOWS_CHROMIUM = 'C:\\Program Files\\Chromium\\Application\\chrome.exe'
@@ -20,6 +20,8 @@ const WINDOWS_CHROMIUM = 'C:\\Program Files\\Chromium\\Application\\chrome.exe'
 const SETTLE_CHECK_MS = 500
 const SETTLE_QUIET_MS = 1500
 const SETTLE_MAX_MS = 15000
+
+const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
 
 async function probeBrowser() {
   try {
@@ -60,7 +62,7 @@ async function ensureBrowser() {
 
   if (!version && startBrowser()) {
     for (let attempt = 0; attempt < 20 && !version; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await sleep(500)
       version = await probeBrowser()
     }
   }
@@ -90,7 +92,7 @@ async function waitForTextToSettle(page) {
 
     if (Date.now() - quietSince >= SETTLE_QUIET_MS) return
 
-    await page.waitForTimeout(SETTLE_CHECK_MS)
+    await sleep(SETTLE_CHECK_MS)
   }
 }
 
@@ -108,8 +110,8 @@ if (browserProblem) {
   process.exit(2)
 }
 
-const browser = await chromium.connectOverCDP(DEBUG_URL)
-const page = await browser.contexts()[0].newPage()
+const browser = await puppeteer.connect({ browserURL: DEBUG_URL })
+const page = await browser.newPage()
 
 try {
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
@@ -127,6 +129,6 @@ try {
 } finally {
   await page.close()
 
-  // Over CDP this only detaches: the shared browser stays up for the next script.
-  await browser.close()
+  // Only detaches: close() would shut down the shared browser.
+  await browser.disconnect()
 }
