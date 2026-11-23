@@ -89,14 +89,20 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    1. Always use `WebSearch` with `mode: "extended"`, overriding the harness advice to start with "standard".
       Standard searches a lagging index: it missed a model released the day before and a celebrity death reported by every major outlet, while extended found both first try.
       Never judge a lookup "stable" enough for standard: you can't know what changed since the index was built.
-5. When a `curl` read fails because the server rejects non-browser clients (bot challenge, empty body, 403, timeout) or the page is rendered by script, don't fall back to memory.
-   Retry the page through `puppeteer-core` instead (see "Browser automation"): it runs a real browser engine, which is what these failures are missing.
-   `node ~/.claude/scripts/read-page.mjs <url>` does the whole read in one command (status, final URL, title, then the rendered text). Write a script of your own only when the page needs interaction such as scrolling or clicking.
+5. Read a page in two steps, each a single command:
+   1. `node ~/.claude/scripts/fetch-page.mjs <url>` fetches it without a browser.
+   2. If that exits with code 3 (blocked, a bot challenge or too little text because script fills the page), run `node ~/.claude/scripts/read-page.mjs <url>`. It reads the page through the shared browser (see "Browser automation"), which is what those failures are missing. Don't fall back to memory.
+
+   Both print the status, final URL, title, byline and date when found, then the main article text picked out by Firefox's Reader View engine (Readability).
+   On pages that aren't articles (comment threads, forums, search results, docs indexes, pricing tables), add `--full` for all of the page's text. Without it, anything outside what Readability takes for the article is quietly dropped.
+   Long pages (a big README, docs, a whole Wikipedia article) can run past what a tool result shows, which costs a second fetch. If a page is likely long, or you need only one section, save the output to a temp file on the first call. Then grep or read just the parts you need.
+   Never parse raw HTML with regexes: lazy patterns over a large page can run for minutes. If you need something the scripts don't print, query the HTML through `linkedom`, a DOM parser that `~/.claude` depends on.
+   Write a browser script of your own only when the page needs interaction such as scrolling or clicking.
 6. A non-200 response that still carries a page often says how to get past it (a cookie check, "wait N seconds", a JS challenge). Read it before calling the page blocked.
    In the browser route, wait past the stated delay and for the reload before reading the content. Call it blocked only when the page says access is denied with no way through.
 7. A login wall is the exception: the browser route drives a scratch profile with no sessions in it, so it will fail the same way. Skip straight to rule 8.
 8. If the browser route also fails, ask the user to fetch the content and paste it back. Say which URL and what part you need.
-9. Read web pages with `curl`, never `WebFetch` (a PreToolUse hook blocks it, except in `claude-code-guide`, which has no shell) or the built-in `web-fetch` agent.
+9. Read web pages with the scripts in rule 5, never `WebFetch` (a PreToolUse hook blocks it, except in `claude-code-guide`, which has no shell) or the built-in `web-fetch` agent.
    `WebFetch` refuses domains off an unpublished blocklist, and `web-fetch` agents load neither this file nor memory, so their reports come back with guessed causes.
    Delegate the read to a general-purpose agent (it loads both) and ask it for the answer, not the page, so the dump stays out of the main context. A small file such as a `robots.txt` can be curled directly.
 
@@ -149,7 +155,7 @@ The goal of these preferences is to make code appear aesthetically pleasing in t
    On macOS, `open` detaches it the same way (`-n` forces a new instance alongside any running one):
    `open -na Chromium --args --remote-debugging-port=9222 --user-data-dir=/tmp/claude-browser-profile --no-first-run --no-default-browser-check`
 4. Launch headed for anything out on the internet: headless announces itself in its user agent (`HeadlessChrome/152.0.0.0` where headed says plain `Chrome/152.0.0.0`), which is the first thing bot detection reads. `--headless` is only for localhost or the LAN.
-   1. The shared browser must be headed for internet work, including the `curl` fallback (H.5). An earlier localhost task may have left a headless one on port 9222, so read the `Browser` field of the rule 3 probe before attaching.
+   1. The shared browser must be headed for internet work, including the `read-page.mjs` fallback (H.5). An earlier localhost task may have left a headless one on port 9222, so read the `Browser` field of the rule 3 probe before attaching.
       `HeadlessChrome/...` means don't reuse it: end the process listening on port 9222 and start a headed one with the rule 3 command. Using the same `--user-data-dir` keeps the profile's cookies and logins.
       This is the one case where I don't need to ask before shutting the browser down (rule 6).
 5. Attach with `puppeteer.connect({ browserURL: 'http://127.0.0.1:9222' })`, which hands back the full puppeteer API (locators, waits, request interception, emulation): never drop to raw CDP through `createCDPSession`.

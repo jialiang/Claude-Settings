@@ -3,13 +3,20 @@
 // This is the browser route of rule H.5 in ~/.claude/CLAUDE.md, packaged so an agent
 // runs one command instead of writing a puppeteer script each time.
 //
-// Usage: node ~/.claude/scripts/read-page.mjs <url>
+// Usage: node ~/.claude/scripts/read-page.mjs <url> [--full]
 //
-// Output: a header (HTTP status, final URL, title), a blank line, then the page text.
-// Exit codes: 0 read, 1 navigation failed, 2 no usable browser on port 9222.
+// Output: a header (HTTP status, final URL, title and byline, date when found),
+// a blank line, then the main article text (or the whole page when there is none).
+// --full skips article detection: use it for pages that aren't articles
+// (comment threads, forums, search results, docs indexes, pricing tables).
+// Exit codes: 0 read, 1 navigation failed, 2 no usable browser on port 9222,
+// 3 a bot check page (e.g. Cloudflare's "Just a moment...") never let it through.
 
 import { spawn } from 'node:child_process'
 import puppeteer from 'puppeteer-core'
+
+import { isChallengeTitle } from './lib/challenge.mjs'
+import { extractArticle, printPage, readArguments } from './lib/extract-article.mjs'
 
 const DEBUG_URL = 'http://127.0.0.1:9222'
 const WINDOWS_CHROMIUM = 'C:\\Program Files\\Chromium\\Application\\chrome.exe'
@@ -20,6 +27,9 @@ const WINDOWS_CHROMIUM = 'C:\\Program Files\\Chromium\\Application\\chrome.exe'
 const SETTLE_CHECK_MS = 500
 const SETTLE_QUIET_MS = 1500
 const SETTLE_MAX_MS = 15000
+
+// Bot checks usually pass a real browser within a few seconds, then reload the page.
+const CHALLENGE_MAX_MS = 30000
 
 const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
 
@@ -77,13 +87,34 @@ async function ensureBrowser() {
   return ''
 }
 
+// Reads the title, or '' while a navigation is replacing the page.
+async function readTitle(page) {
+  try {
+    return await page.title()
+  } catch {
+    return ''
+  }
+}
+
+// Returns false when the bot check still stands after CHALLENGE_MAX_MS (rule H.6).
+async function waitForChallengeToClear(page) {
+  const deadline = Date.now() + CHALLENGE_MAX_MS
+
+  while (Date.now() < deadline) {
+    if (!isChallengeTitle(await readTitle(page))) return true
+    await sleep(SETTLE_CHECK_MS)
+  }
+
+  return false
+}
+
 async function waitForTextToSettle(page) {
   const deadline = Date.now() + SETTLE_MAX_MS
   let previousLength = -1
   let quietSince = Date.now()
 
   while (Date.now() < deadline) {
-    const length = await page.evaluate(() => document.body?.innerText.length ?? 0)
+    const length = await page.evaluate(() => document.body?.innerText.length ?? 0).catch(() => -1)
 
     if (length !== previousLength) {
       previousLength = length
@@ -96,12 +127,7 @@ async function waitForTextToSettle(page) {
   }
 }
 
-const url = process.argv[2]
-
-if (!url) {
-  console.error('Usage: node read-page.mjs <url>')
-  process.exit(1)
-}
+const { url, isFullPage } = readArguments('read-page.mjs')
 
 const browserProblem = await ensureBrowser()
 
@@ -113,16 +139,27 @@ if (browserProblem) {
 const browser = await puppeteer.connect({ browserURL: DEBUG_URL })
 const page = await browser.newPage()
 
-try {
-  const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
-  await waitForTextToSettle(page)
+// A bot check answers first (often 403) and the real page arrives on a later load,
+// so the status printed is the last main-page response's.
+let status = 'unknown'
 
-  const text = await page.evaluate(() => document.body?.innerText ?? '')
-  console.log(`Status: ${response?.status() ?? 'unknown'}`)
-  console.log(`URL: ${page.url()}`)
-  console.log(`Title: ${await page.title()}`)
-  console.log()
-  console.log(text)
+page.on('response', response => {
+  const isPageLoad = response.request().isNavigationRequest()
+  if (isPageLoad && response.frame() === page.mainFrame()) status = response.status()
+})
+
+try {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+
+  if (!(await waitForChallengeToClear(page))) {
+    console.error(`Still on a bot check page after ${CHALLENGE_MAX_MS / 1000} s (HTTP ${status})`)
+    process.exitCode = 3
+  } else {
+    await waitForTextToSettle(page)
+
+    const extracted = extractArticle(await page.content(), { url: page.url(), isFullPage })
+    printPage({ status, url: page.url(), page: extracted })
+  }
 } catch (error) {
   console.error(`Navigation failed: ${error.message}`)
   process.exitCode = 1

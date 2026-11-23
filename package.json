@@ -9,7 +9,9 @@
     "prettier": "3.9.6"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
     "firebase-admin": "^14.5.1",
+    "linkedom": "^0.18.15",
     "puppeteer-core": "^25.18.1"
   }
 }
